@@ -32,6 +32,11 @@ open class IllustFetcher<T>(
     fun reset() = resetFn()
 
     companion object {
+        private fun mergeIllusts(illusts: List<Illust>, newIllusts: List<Illust>): List<Illust> {
+            val ids = illusts.map { it.id }
+            return illusts + newIllusts.filter { !ids.contains(it.id) }
+        }
+
         fun follow(
             meta: FollowMeta = FollowMeta("all"),
             illusts: List<Illust> = emptyList(),
@@ -49,9 +54,9 @@ open class IllustFetcher<T>(
                             this.meta.restrict,
                             nextOffset ?: (this.meta.offset + data.illusts.size)
                         ),
-                        illusts = this.illusts + data.illusts,
+                        illusts = mergeIllusts(this.illusts, data.illusts),
                     )
-                } else this.copy(illusts = this.illusts + data.illusts, done = true)
+                } else this.copy(illusts = mergeIllusts(this.illusts, data.illusts), done = true)
             },
             {
                 this.copy(
@@ -90,9 +95,9 @@ open class IllustFetcher<T>(
                             this.meta.userId,
                             maxId ?: (data.illusts.last().id - 1)
                         ),
-                        illusts = this.illusts + data.illusts,
+                        illusts = mergeIllusts(this.illusts, data.illusts),
                     )
-                } else this.copy(illusts = this.illusts + data.illusts, done = true)
+                } else this.copy(illusts = mergeIllusts(this.illusts, data.illusts), done = true)
             },
             {
                 this.copy(
