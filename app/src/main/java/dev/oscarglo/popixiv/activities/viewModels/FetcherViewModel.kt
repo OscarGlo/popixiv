@@ -19,7 +19,7 @@ class FetcherViewModel : ViewModel() {
         listOf(
             mapOf(
                 "follow" to IllustFetcher.follow(),
-                "bookmark" to IllustFetcher.bookmark()
+                "bookmark" to IllustFetcher.bookmark(BookmarkMeta("public"))
             )
         )
     )

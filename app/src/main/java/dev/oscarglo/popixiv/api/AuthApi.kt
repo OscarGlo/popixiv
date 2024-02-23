@@ -1,5 +1,6 @@
 package dev.oscarglo.popixiv.api
 
+import dev.oscarglo.popixiv.util.Prefs
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Field
@@ -11,7 +12,8 @@ const val CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
 
 data class OAuthResponse(
     val access_token: String,
-    val refresh_token: String
+    val refresh_token: String,
+    val user: User
 )
 
 interface AuthApi {
@@ -21,6 +23,12 @@ interface AuthApi {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(AuthApi::class.java)
+
+        suspend fun refreshTokens() =
+            instance.postRefreshToken(Prefs.PIXIV_REFRESH_TOKEN.get()).apply {
+                Prefs.PIXIV_REFRESH_TOKEN.set(refresh_token)
+                Prefs.PIXIV_ACCESS_TOKEN.set(access_token)
+            }
     }
 
     @FormUrlEncoded

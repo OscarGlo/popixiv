@@ -8,7 +8,7 @@ sealed class RestrictMeta(val restrict: String, val allAllowed: Boolean)
 
 class FollowMeta(restrict: String, val offset: Int = 0) : RestrictMeta(restrict, true)
 
-class BookmarkMeta(restrict: String, val userId: Long, val maxId: Long? = null) :
+class BookmarkMeta(restrict: String, val userId: Long? = null, val maxId: Long? = null) :
     RestrictMeta(restrict, false)
 
 open class IllustFetcher<T>(
@@ -65,12 +65,15 @@ open class IllustFetcher<T>(
         )
 
         fun bookmark(
-            meta: BookmarkMeta = BookmarkMeta("public", 35829064),
+            meta: BookmarkMeta,
             illusts: List<Illust> = emptyList(),
             current: Int = 0,
         ) = IllustFetcher(
             meta,
             {
+                if (this.meta.userId == null)
+                    return@IllustFetcher this.copy(done = true)
+
                 val data = PixivApi.instance.getBookmarkIllusts(
                     this.meta.restrict,
                     this.meta.userId,

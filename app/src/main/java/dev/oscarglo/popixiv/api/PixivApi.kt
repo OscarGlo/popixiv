@@ -67,7 +67,7 @@ data class User(
     val name: String,
     val account: String,
     val profile_image_urls: Map<String, String>,
-    val is_followed: Boolean
+    val is_followed: Boolean?
 )
 
 data class ImageUrls(
@@ -105,10 +105,7 @@ interface PixivApi {
                     if (res.code == 400 && Prefs.PIXIV_REFRESH_TOKEN.exists()) {
                         res.close()
 
-                        // Refresh access token
-                        val tokens = AuthApi.instance.postRefreshToken(Prefs.PIXIV_REFRESH_TOKEN.get())
-                        Prefs.PIXIV_REFRESH_TOKEN.set(tokens.refresh_token)
-                        Prefs.PIXIV_ACCESS_TOKEN.set(tokens.access_token)
+                        val tokens = AuthApi.refreshTokens()
 
                         // Retry request
                         it.proceed(

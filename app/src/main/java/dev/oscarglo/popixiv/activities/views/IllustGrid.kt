@@ -123,13 +123,13 @@ fun IllustGrid(
 
     @Composable
     fun Loader() {
-        Box(
-            modifier = Modifier
-                .padding(16.dp)
-                .alpha(if (showIndicator) 0F else 1F)
-        ) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        }
+        if (!showIndicator)
+            Box(
+                modifier = Modifier
+                    .padding(16.dp)
+            ) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
 
         LaunchedEffect("getIllusts") {
             try {
@@ -228,9 +228,8 @@ fun RestrictFilter(fetcherKey: String) {
         onChange = {
             fetcherViewModel.updateLast(fetcherKey) {
                 when (fetcher.meta) {
-                    is FollowMeta -> fetcher.reset().copy(meta = FollowMeta(it))
-                    is BookmarkMeta -> fetcher.reset()
-                        .copy(meta = BookmarkMeta(it, fetcher.meta.userId))
+                    is FollowMeta -> fetcher.reset().copy(FollowMeta(it))
+                    is BookmarkMeta -> fetcher.reset().copy(BookmarkMeta(it, fetcher.meta.userId))
                 }
             }
         },

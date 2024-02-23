@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
@@ -30,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -37,15 +39,26 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.oscarglo.popixiv.activities.components.SaveToast
+import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
+import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
+import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
 import dev.oscarglo.popixiv.activities.views.Gallery
 import dev.oscarglo.popixiv.activities.views.IllustGrid
 import dev.oscarglo.popixiv.activities.views.SettingTabPage
 import dev.oscarglo.popixiv.activities.views.SettingsPage
+import dev.oscarglo.popixiv.api.AuthApi
+import dev.oscarglo.popixiv.api.User
 import dev.oscarglo.popixiv.ui.theme.AppTheme
 import dev.oscarglo.popixiv.util.Prefs
 import dev.oscarglo.popixiv.util.getImagesDir
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import retrofit2.HttpException
 
+class AppViewModel : ViewModel() {
+    val user = MutableStateFlow<User?>(null)
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +71,28 @@ class MainActivity : ComponentActivity() {
             return startActivity(Intent(this, LoginActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             })
+
+        val fetcherViewModel by viewModels<FetcherViewModel>()
+        val appViewModel by viewModels<AppViewModel>()
+
+        if (appViewModel.user.value == null)
+            Thread {
+                runBlocking {
+                    try {
+                        val res = AuthApi.refreshTokens()
+                        appViewModel.user.value = res.user
+
+                        fetcherViewModel.updateLast("bookmark") {
+                            (this as IllustFetcher<BookmarkMeta>).copy(
+                                BookmarkMeta("public", res.user.id),
+                                done = false
+                            )
+                        }
+                    } catch (e: HttpException) {
+                        e.printStackTrace()
+                    }
+                }
+            }.start()
 
         setContent {
             AppTheme {
