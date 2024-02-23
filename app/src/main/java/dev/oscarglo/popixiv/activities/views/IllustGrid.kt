@@ -32,7 +32,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
@@ -92,6 +91,7 @@ fun IllustGrid(
 
     val stagger by Prefs.APPEARANCE_GRID_STAGGER.booleanState()
     val gap by Prefs.APPEARANCE_GRID_GAP.intState()
+    val cardSize by Prefs.APPEARANCE_CARD_SIZE.intState()
 
     @Composable
     fun DateHeader(date: String, index: Int) {
@@ -173,7 +173,7 @@ fun IllustGrid(
         ) {
             if (stagger)
                 LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Adaptive(120.dp),
+                    columns = StaggeredGridCells.Adaptive(cardSize.dp),
                     verticalItemSpacing = gap.dp,
                     horizontalArrangement = Arrangement.spacedBy(gap.dp)
                 ) {
@@ -189,7 +189,7 @@ fun IllustGrid(
                 }
             else
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(120.dp),
+                    columns = GridCells.Adaptive(cardSize.dp),
                     verticalArrangement = Arrangement.spacedBy(gap.dp),
                     horizontalArrangement = Arrangement.spacedBy(gap.dp)
                 ) {

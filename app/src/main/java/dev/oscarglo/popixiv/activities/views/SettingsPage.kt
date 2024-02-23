@@ -57,8 +57,9 @@ val settingsTabs = mapOf(
         var theme by Prefs.APPEARANCE_THEME.state()
         var blurR18 by Prefs.APPEARANCE_BLUR_R18.booleanState()
         var gridStagger by Prefs.APPEARANCE_GRID_STAGGER.booleanState()
-        var cardMulti by Prefs.APPEARANCE_CARD_MULTI.booleanState()
         var gridGap by Prefs.APPEARANCE_GRID_GAP.intState()
+        var cardMulti by Prefs.APPEARANCE_CARD_MULTI.booleanState()
+        var cardSize by Prefs.APPEARANCE_CARD_SIZE.intState()
 
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -126,6 +127,24 @@ val settingsTabs = mapOf(
         }
 
         Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp, bottom = 4.dp, start = 16.dp, end = 24.dp)
+        ) {
+            Text("Grid gap", modifier = Modifier.width(96.dp))
+            Slider(
+                value = gridGap.toFloat(),
+                onValueChange = { gridGap = it.roundToInt() },
+                steps = 7,
+                valueRange = 0f..8f,
+                modifier = Modifier.weight(1f)
+            )
+            Text(gridGap.toString(), modifier = Modifier.width(32.dp), textAlign = TextAlign.End)
+        }
+
+        Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -146,6 +165,8 @@ val settingsTabs = mapOf(
             )
         }
 
+
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -153,15 +174,15 @@ val settingsTabs = mapOf(
                 .fillMaxWidth()
                 .padding(top = 4.dp, bottom = 4.dp, start = 16.dp, end = 24.dp)
         ) {
-            Text("Grid gap")
+            Text("Card size", modifier = Modifier.width(96.dp))
             Slider(
-                value = gridGap.toFloat(),
-                onValueChange = { gridGap = it.roundToInt() },
-                steps = 7,
-                valueRange = 0f..8f,
+                value = cardSize.toFloat(),
+                onValueChange = { cardSize = (it / 32).roundToInt() * 32 },
+                steps = 4,
+                valueRange = 96f..256f,
                 modifier = Modifier.weight(1f)
             )
-            Text(gridGap.toString(), modifier = Modifier.width(24.dp), textAlign = TextAlign.End)
+            Text(cardSize.toString(), modifier = Modifier.width(32.dp), textAlign = TextAlign.End)
         }
     },
     "Reverse search" to SettingTab(Icons.Default.ImageSearch) {
