@@ -36,7 +36,7 @@ interface AuthApi {
     ): OAuthResponse
 
     @FormUrlEncoded
-    @POST("/auth/token")
+    @POST("auth/token")
     suspend fun postRefreshToken(
         @Field("refresh_token") refresh_token: String,
         @Field("client_id") id: String = CLIENT_ID,

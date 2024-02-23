@@ -18,7 +18,6 @@ fun AppTheme(content: @Composable () -> Unit) {
     val system = isSystemInDarkTheme()
 
     val theme by Prefs.APPEARANCE_THEME.state()
-    println(theme)
 
     val darkTheme = when (theme) {
         "system" -> system

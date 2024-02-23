@@ -83,7 +83,7 @@ fun IllustGrid(
     val illustGroups = fetcher.illusts.mapIndexed { i, illust -> i to illust }
         .groupBy { dateToString(dateFormat.parse(it.second.create_date)) }
 
-    val showIndicator = refreshing || fetcher.illusts.isEmpty()
+    val showIndicator = refreshing || (!fetcher.done && fetcher.illusts.isEmpty())
 
     val pullRefreshState = rememberPullRefreshState(
         showIndicator,

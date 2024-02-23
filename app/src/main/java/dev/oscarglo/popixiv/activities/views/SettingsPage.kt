@@ -60,8 +60,6 @@ val settingsTabs = mapOf(
         var cardMulti by Prefs.APPEARANCE_CARD_MULTI.booleanState()
         var gridGap by Prefs.APPEARANCE_GRID_GAP.intState()
 
-        println(gridGap)
-
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
