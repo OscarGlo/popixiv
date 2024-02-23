@@ -4,6 +4,6 @@ import android.os.Environment
 import java.io.File
 
 fun getImagesDir(): File {
-    val dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
-    return File(dcim, "popixiv")
+    val pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+    return File(pictures, "popixiv")
 }
