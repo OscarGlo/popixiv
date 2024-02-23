@@ -54,10 +54,15 @@ fun IllustCard(
     fun IllustPreview(
         imageUrls: ImageUrls, modifier: Modifier = Modifier
     ) {
+        var loading by rememberSaveable { mutableStateOf(true) }
+
         var imgMod = modifier.fillMaxWidth()
 
         if (blurR18 && illust.tags.any { it.name == "R-18" })
             imgMod = imgMod.blur(16.dp)
+
+        if (loading)
+            imgMod = imgMod.aspectRatio(1f)
 
         AsyncImage(
             ImageRequest.Builder(LocalContext.current)
@@ -66,6 +71,7 @@ fun IllustCard(
             contentDescription = "preview",
             contentScale = ContentScale.Crop,
             modifier = imgMod,
+            onSuccess = { loading = false }
         )
     }
 
