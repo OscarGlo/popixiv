@@ -19,8 +19,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.TopAppBar
@@ -28,10 +30,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,8 +57,10 @@ import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.ui.theme.AppTheme
 import dev.oscarglo.popixiv.util.getImagesDir
 import dev.oscarglo.popixiv.util.globalViewModel
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import retrofit2.HttpException
 import java.io.File
 
 val client = OkHttpClient.Builder().build()
@@ -152,58 +160,100 @@ fun IllustView(illust: Illust) {
     val scrollState = rememberScrollState()
     val savingPages by saveViewModel.saving.collectAsState()
 
+    var bookmarked by rememberSaveable { mutableStateOf(illust.is_bookmarked) }
+    var loadingBookmark by rememberSaveable { mutableStateOf(false) }
+
     Surface {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-        ) {
-            illust.pages.map { page ->
-                Box {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        Box {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+            ) {
+                illust.pages.map { page ->
+                    Box {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
-                    AsyncImage(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(page.image_urls.large)
-                            .headers(PixivApi.getHeaders())
-                            .build(),
-                        contentDescription = illust.caption,
-                        contentScale = ContentScale.FillWidth,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        AsyncImage(
+                            ImageRequest.Builder(LocalContext.current)
+                                .data(page.image_urls.large)
+                                .headers(PixivApi.getHeaders())
+                                .build(),
+                            contentDescription = illust.caption,
+                            contentScale = ContentScale.FillWidth,
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.6F))
-                            .size(48.dp)
-                            .clickable { downloadPage(saveViewModel, page) },
-                    ) {
-                        if (savingPages.contains(page.filename))
-                            CircularProgressIndicator(
-                                strokeWidth = 3.dp,
-                                color = Color.White,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .align(
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.6F))
+                                .size(48.dp)
+                                .clickable { downloadPage(saveViewModel, page) },
+                        ) {
+                            if (savingPages.contains(page.filename))
+                                CircularProgressIndicator(
+                                    strokeWidth = 3.dp,
+                                    color = Color.White,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .align(
+                                            Alignment.Center
+                                        )
+                                )
+                            else
+                                Icon(
+                                    if (File(getImagesDir(), page.filename).exists())
+                                        Icons.Default.DownloadDone
+                                    else
+                                        Icons.Default.Download,
+                                    contentDescription = "download",
+                                    modifier = Modifier.align(
                                         Alignment.Center
                                     )
-                            )
-                        else
-                            Icon(
-                                if (File(getImagesDir(), page.filename).exists())
-                                    Icons.Default.DownloadDone
-                                else
-                                    Icons.Default.Download,
-                                contentDescription = "download",
-                                modifier = Modifier.align(
-                                    Alignment.Center
                                 )
-                            )
+                        }
                     }
                 }
+            }
+
+            FloatingActionButton(
+                onClick = {
+                    if (!loadingBookmark)
+                        Thread {
+                            loadingBookmark = true
+                            try {
+                                runBlocking {
+                                    if (bookmarked) PixivApi.instance.deleteBookmark(illust.id)
+                                    else PixivApi.instance.addBookmark(illust.id)
+                                    bookmarked = !bookmarked
+                                }
+                            } catch (e: HttpException) {
+                                e.printStackTrace()
+                            }
+                            loadingBookmark = false
+                        }.start()
+                },
+                backgroundColor = MaterialTheme.colors.background,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomEnd)
+            ) {
+                if (loadingBookmark)
+                    CircularProgressIndicator(
+                        strokeWidth = 3.dp,
+                        color = MaterialTheme.colors.onBackground,
+                        modifier = Modifier.size(24.dp)
+                    )
+                else
+                    Icon(
+                        Icons.Default.Favorite,
+                        contentDescription = "Favorite",
+                        modifier = Modifier.size(24.dp),
+                        tint = if (bookmarked) Color(0xffff4060) else MaterialTheme.colors.onBackground
+                    )
             }
         }
     }
