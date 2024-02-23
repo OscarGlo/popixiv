@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -41,12 +42,14 @@ import dev.oscarglo.popixiv.api.ImageUrls
 import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.util.Prefs
 import kotlinx.coroutines.runBlocking
+import retrofit2.HttpException
 
 @Composable
 fun IllustCard(
     illust: Illust, onClick: (illust: Illust) -> Unit, largePreview: Boolean = false, gap: Dp = 0.dp
 ) {
     var bookmarked by rememberSaveable { mutableStateOf(illust.is_bookmarked) }
+    var loadingBookmark by rememberSaveable { mutableStateOf(false) }
     val multi by Prefs.APPEARANCE_CARD_MULTI.booleanState()
     val blurR18 by Prefs.APPEARANCE_BLUR_R18.booleanState()
 
@@ -170,24 +173,41 @@ fun IllustCard(
             .clip(RoundedCornerShape(8.dp, 0.dp, 0.dp, 0.dp))
             .background(Color.Black.copy(alpha = 0.6F))
             .clickable {
-                Thread {
-                    runBlocking {
-                        if (bookmarked) PixivApi.instance.deleteBookmark(illust.id)
-                        else PixivApi.instance.addBookmark(illust.id)
-                        bookmarked = !bookmarked
-                    }
-                }.start()
+                if (!loadingBookmark)
+                    Thread {
+                        loadingBookmark = true
+                        try {
+                            runBlocking {
+                                if (bookmarked) PixivApi.instance.deleteBookmark(illust.id)
+                                else PixivApi.instance.addBookmark(illust.id)
+                                bookmarked = !bookmarked
+                            }
+                        } catch (e: HttpException) {
+                            e.printStackTrace()
+                        }
+                        loadingBookmark = false
+                    }.start()
             }
             .padding(6.dp, 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(illust.total_bookmarks.toString(), color = Color.White)
-            Icon(
-                Icons.Default.Favorite,
-                contentDescription = "Favorite",
-                modifier = Modifier.size(20.dp),
-                tint = if (bookmarked) Color(0xffff4060) else Color.White
-            )
+            if (loadingBookmark)
+                CircularProgressIndicator(
+                    strokeWidth = 2.dp,
+                    color = Color.White,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(2.dp)
+                )
+            else
+                Icon(
+                    Icons.Default.Favorite,
+                    contentDescription = "Favorite",
+                    modifier = Modifier.size(20.dp),
+                    tint = if (bookmarked) Color(0xffff4060) else Color.White
+                )
         }
     }
 }
