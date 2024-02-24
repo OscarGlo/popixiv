@@ -55,7 +55,10 @@ import dev.oscarglo.popixiv.activities.components.HtmlText
 import dev.oscarglo.popixiv.activities.components.SaveToast
 import dev.oscarglo.popixiv.activities.components.SaveViewModel
 import dev.oscarglo.popixiv.activities.components.Tag
+import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
+import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
+import dev.oscarglo.popixiv.activities.viewModels.UserMeta
 import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.api.IllustPage
 import dev.oscarglo.popixiv.api.PixivApi
@@ -122,6 +125,7 @@ fun Gallery(fetcherKey: String, navController: NavController) {
 @Composable
 fun IllustView(navController: NavController, illust: Illust) {
     val saveViewModel = globalViewModel<SaveViewModel>()
+    val fetcherViewModel = globalViewModel<FetcherViewModel>()
 
     val scrollState = rememberScrollState()
     val savingPages by saveViewModel.saving.collectAsState()
@@ -152,24 +156,43 @@ fun IllustView(navController: NavController, illust: Illust) {
                                 )
                             }
 
-                            AsyncImage(
-                                pixivImage(illust.user.profile_image_urls.values.first()),
-                                contentDescription = illust.user.account,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .size(36.dp)
-                                    .background(MaterialTheme.colors.background)
-                            )
-
-                            Column {
-                                Text(
-                                    illust.user.name,
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp,
-                                    color = MaterialTheme.colors.onBackground
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable {
+                                    fetcherViewModel.push(
+                                        mapOf(
+                                            "bookmark" to IllustFetcher.bookmark(
+                                                BookmarkMeta(
+                                                    "public",
+                                                    illust.user.id
+                                                )
+                                            ),
+                                            "user" to IllustFetcher.user(UserMeta(illust.user.id))
+                                        )
+                                    )
+                                    navController.navigate("user/${illust.user.id}")
+                                }
+                            ) {
+                                AsyncImage(
+                                    pixivImage(illust.user.profile_image_urls.values.first()),
+                                    contentDescription = illust.user.account,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .size(36.dp)
+                                        .background(MaterialTheme.colors.background)
                                 )
-                                Text(illust.user.account, fontSize = 12.sp, lineHeight = 16.sp)
+
+                                Column {
+                                    Text(
+                                        illust.user.name,
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp,
+                                        color = MaterialTheme.colors.onBackground
+                                    )
+                                    Text(illust.user.account, fontSize = 12.sp, lineHeight = 16.sp)
+                                }
                             }
                         }
 

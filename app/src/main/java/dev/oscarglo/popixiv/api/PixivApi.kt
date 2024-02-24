@@ -89,6 +89,10 @@ data class IllustPage(
     var filename: String = ""
 )
 
+data class UserResponse(
+    val user: User
+)
+
 val userAgent =
     "PixivAndroidApp/7.13.3 (Android ${android.os.Build.VERSION.RELEASE}; ${android.os.Build.MODEL})"
 
@@ -145,6 +149,18 @@ interface PixivApi {
         @Query("max_bookmark_id") max_bookmark_id: Long? = 0
     ): IllustResponse
 
+    @GET("/v1/user/illusts")
+    suspend fun getUserIllusts(
+        @Query("user_id") user_id: Long,
+        @Query("type") type: String,
+        @Query("offset") offset: Int? = 0,
+    ): IllustResponse
+
+    @GET("/v1/user/detail")
+    suspend fun getUserDetail(
+        @Query("user_id") id: Long
+    ): UserResponse
+
     @FormUrlEncoded
     @POST("/v2/illust/bookmark/add")
     suspend fun addBookmark(
@@ -158,5 +174,19 @@ interface PixivApi {
     suspend fun deleteBookmark(
         @Field("illust_id") illust_id: Long
     ): ResponseBody
+
+    @FormUrlEncoded
+    @POST("/v1/user/follow/add")
+    suspend fun addFollow(
+        @Field("user_id") user_id: Long,
+        @Field("restrict") restrict: String = "public"
+    ): ResponseBody
+
+    @FormUrlEncoded
+    @POST("/v1/user/follow/delete")
+    suspend fun deleteFollow(
+        @Field("user_id") user_id: Long
+    ): ResponseBody
+
 }
 

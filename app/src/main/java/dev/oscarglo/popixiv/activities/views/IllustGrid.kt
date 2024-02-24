@@ -17,9 +17,13 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -69,6 +73,7 @@ fun IllustGrid(
     navController: NavController,
     modifier: Modifier = Modifier,
     showDates: Boolean = false,
+    hasBackButton: Boolean = false
 ) {
     val context = LocalContext.current
 
@@ -148,16 +153,28 @@ fun IllustGrid(
         topBar = {
             TopAppBar {
                 Row(
-                    horizontalArrangement = if (showDates) Arrangement.SpaceBetween else Arrangement.End,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (showDates)
-                        Text(
-                            illustGroups.keys.toList()
-                                .getOrElse(currentDateIndex) { "Loading..." },
-                            modifier = Modifier.padding(8.dp)
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (hasBackButton)
+                            IconButton(onClick = { navController.navigateUp() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Default.ArrowBack,
+                                    contentDescription = "back"
+                                )
+                            }
+
+                        if (showDates)
+                            Text(
+                                illustGroups.keys.toList()
+                                    .getOrElse(currentDateIndex) { "Loading..." },
+                                modifier = Modifier.padding(8.dp)
+                            )
+                    }
 
                     if (fetcher.meta is RestrictMeta)
                         RestrictFilter(fetcherKey)

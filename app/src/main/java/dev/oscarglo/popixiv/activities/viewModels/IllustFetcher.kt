@@ -11,6 +11,8 @@ class FollowMeta(restrict: String, val offset: Int = 0) : RestrictMeta(restrict,
 class BookmarkMeta(restrict: String, val userId: Long? = null, val maxId: Long? = null) :
     RestrictMeta(restrict, false)
 
+class UserMeta(val userId: Long? = null, val offset: Int = 0)
+
 open class IllustFetcher<T>(
     val meta: T,
     val fetchFn: suspend IllustFetcher<T>.() -> IllustFetcher<T>,
@@ -102,6 +104,42 @@ open class IllustFetcher<T>(
             {
                 this.copy(
                     meta = BookmarkMeta(this.meta.restrict, this.meta.userId),
+                    illusts = emptyList(),
+                    done = false,
+                )
+            },
+            illusts,
+            current,
+        )
+
+        fun user(
+            meta: UserMeta,
+            illusts: List<Illust> = emptyList(),
+            current: Int = 0,
+        ) = IllustFetcher(
+            meta,
+            {
+                if (this.meta.userId == null)
+                    return@IllustFetcher this.copy(done = true)
+
+                val data =
+                    PixivApi.instance.getUserIllusts(this.meta.userId, "illust", this.meta.offset)
+
+                return@IllustFetcher if (data.next_url != null) {
+                    val nextOffset = Uri.parse(data.next_url).getQueryParameter("offset")?.toInt()
+
+                    this.copy(
+                        meta = UserMeta(
+                            this.meta.userId,
+                            nextOffset ?: (this.meta.offset + data.illusts.size)
+                        ),
+                        illusts = mergeIllusts(this.illusts, data.illusts),
+                    )
+                } else this.copy(illusts = mergeIllusts(this.illusts, data.illusts), done = true)
+            },
+            {
+                this.copy(
+                    meta = UserMeta(this.meta.userId),
                     illusts = emptyList(),
                     done = false,
                 )

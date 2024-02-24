@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
@@ -27,6 +26,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,15 +44,18 @@ import dev.oscarglo.popixiv.activities.components.SaveToast
 import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
+import dev.oscarglo.popixiv.activities.viewModels.UserMeta
 import dev.oscarglo.popixiv.activities.views.Gallery
 import dev.oscarglo.popixiv.activities.views.IllustGrid
 import dev.oscarglo.popixiv.activities.views.SettingTabPage
 import dev.oscarglo.popixiv.activities.views.SettingsPage
+import dev.oscarglo.popixiv.activities.views.UserPage
 import dev.oscarglo.popixiv.api.AuthApi
 import dev.oscarglo.popixiv.api.User
 import dev.oscarglo.popixiv.ui.theme.AppTheme
 import dev.oscarglo.popixiv.util.Prefs
 import dev.oscarglo.popixiv.util.getImagesDir
+import dev.oscarglo.popixiv.util.globalViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -72,28 +77,6 @@ class MainActivity : ComponentActivity() {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             })
 
-        val fetcherViewModel by viewModels<FetcherViewModel>()
-        val appViewModel by viewModels<AppViewModel>()
-
-        if (appViewModel.user.value == null)
-            Thread {
-                runBlocking {
-                    try {
-                        val res = AuthApi.refreshTokens()
-                        appViewModel.user.value = res.user
-
-                        fetcherViewModel.updateLast("bookmark") {
-                            (this as IllustFetcher<BookmarkMeta>).copy(
-                                BookmarkMeta("public", res.user.id),
-                                done = false
-                            )
-                        }
-                    } catch (e: HttpException) {
-                        e.printStackTrace()
-                    }
-                }
-            }.start()
-
         setContent {
             AppTheme {
                 AppRouter()
@@ -105,6 +88,42 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppRouter() {
     val navController = rememberNavController()
+
+    val fetcherViewModel = globalViewModel<FetcherViewModel>()
+    val appViewModel = globalViewModel<AppViewModel>()
+
+    val user by appViewModel.user.collectAsState()
+
+    LaunchedEffect("loadUser") {
+        if (user == null)
+            Thread {
+                runBlocking {
+                    try {
+                        appViewModel.user.value = AuthApi.refreshTokens().user
+                    } catch (e: HttpException) {
+                        e.printStackTrace()
+                    }
+                }
+            }.start()
+    }
+
+    LaunchedEffect(user) {
+        if (user == null)
+            return@LaunchedEffect
+
+        fetcherViewModel.updateLast("bookmark") {
+            (this as IllustFetcher<BookmarkMeta>).copy(
+                BookmarkMeta("public", user!!.id),
+                done = false
+            )
+        }
+        fetcherViewModel.updateLast("user") {
+            (this as IllustFetcher<UserMeta>).copy(
+                UserMeta(user!!.id),
+                done = false
+            )
+        }
+    }
 
     NavHost(
         navController,
@@ -129,20 +148,33 @@ fun AppRouter() {
         },
         popEnterTransition = { EnterTransition.None }
     ) {
-        composable("home") { HomeLayout(navController) }
-        composable(
-            "gallery/{key}",
-            arguments = listOf(navArgument("key") { type = NavType.StringType })
-        ) {
-            val key = it.arguments?.getString("key")!!
-            Gallery(key, navController)
+        composable("home") {
+            HomeLayout(navController)
         }
         composable(
             "settings/{tab}",
             arguments = listOf(navArgument("tab") { type = NavType.StringType })
         ) {
-            val key = it.arguments?.getString("tab")!!
-            SettingTabPage(key, navController)
+            SettingTabPage(it.arguments?.getString("tab")!!, navController)
+        }
+        composable(
+            "user/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) {
+            UserPage(navController, id = it.arguments?.getLong("id")!!, hasBackButton = true)
+        }
+
+        composable(
+            "grid/{key}",
+            arguments = listOf(navArgument("key") { type = NavType.StringType })
+        ) {
+            IllustGrid(it.arguments?.getString("key")!!, navController, hasBackButton = true)
+        }
+        composable(
+            "gallery/{key}",
+            arguments = listOf(navArgument("key") { type = NavType.StringType })
+        ) {
+            Gallery(it.arguments?.getString("key")!!, navController)
         }
     }
 }
@@ -155,6 +187,9 @@ fun HomeLayout(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(0, 0f) { 3 }
 
+    val appViewModel = globalViewModel<AppViewModel>()
+    val user by appViewModel.user.collectAsState()
+
     val navigationTabs = listOf(
         NavigationTab(Icons.Default.Home, "Feed") {
             IllustGrid(
@@ -164,7 +199,8 @@ fun HomeLayout(navController: NavController) {
             )
         },
         NavigationTab(Icons.Default.Person, "Account") {
-            IllustGrid("bookmark", navController)
+            if (user != null)
+                UserPage(navController, user = user!!)
         },
         NavigationTab(Icons.Default.Settings, "Settings") {
             SettingsPage(navController)

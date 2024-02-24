@@ -10,7 +10,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.lang.IllegalStateException
 
 typealias FetcherMap = Map<String, IllustFetcher<*>>
 
@@ -19,28 +18,34 @@ class FetcherViewModel : ViewModel() {
         listOf(
             mapOf(
                 "follow" to IllustFetcher.follow(),
-                "bookmark" to IllustFetcher.bookmark(BookmarkMeta("public"))
+                "bookmark" to IllustFetcher.bookmark(BookmarkMeta("public")),
+                "user" to IllustFetcher.user(UserMeta())
             )
         )
     )
 
     @Composable
     fun get(key: String): IllustFetcher<*> {
-        val mapIndex = rememberSaveable { fetcherMaps.value.size - 1 }
+        val mapIndex = rememberSaveable {
+            if (fetcherMaps.value.isEmpty())
+                throw IllegalStateException("No fetchers on stack")
 
-        if (mapIndex < 0)
-            throw IllegalStateException("No fetchers on stack")
+            fetcherMaps.value.size - 1
+        }
 
         val fetchers by fetcherMaps.collectAsState()
 
-        if (key !in fetchers[mapIndex])
-            throw IllegalStateException("No fetcher with key '$key'")
+        var fetcher by remember {
+            if (key !in fetchers[mapIndex])
+                throw IllegalStateException("No fetcher with key '$key'")
 
-        var fetcher by remember { mutableStateOf(fetchers[mapIndex][key] as IllustFetcher<*>) }
+            mutableStateOf(fetchers[mapIndex][key] as IllustFetcher<*>)
+        }
 
         LaunchedEffect(fetchers) {
-            if (fetchers.size > mapIndex && key in fetchers[mapIndex])
+            if (fetchers.size > mapIndex && key in fetchers[mapIndex]) {
                 fetcher = fetchers[mapIndex][key] as IllustFetcher<*>
+            }
         }
 
         return fetcher
