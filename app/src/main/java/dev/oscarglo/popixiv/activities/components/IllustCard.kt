@@ -32,15 +32,14 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.api.ImageUrls
 import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.util.Prefs
+import dev.oscarglo.popixiv.util.pixivImage
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 
@@ -50,6 +49,7 @@ fun IllustCard(
 ) {
     var bookmarked by rememberSaveable { mutableStateOf(illust.is_bookmarked) }
     var loadingBookmark by rememberSaveable { mutableStateOf(false) }
+
     val multi by Prefs.APPEARANCE_CARD_MULTI.booleanState()
     val blurR18 by Prefs.APPEARANCE_BLUR_R18.booleanState()
 
@@ -61,16 +61,14 @@ fun IllustCard(
 
         var imgMod = modifier.fillMaxWidth()
 
-        if (blurR18 && illust.tags.any { it.name == "R-18" })
+        if (blurR18 && illust.r18)
             imgMod = imgMod.blur(16.dp)
 
         if (loading)
             imgMod = imgMod.aspectRatio(1f)
 
         AsyncImage(
-            ImageRequest.Builder(LocalContext.current)
-                .data(if (largePreview) imageUrls.medium else imageUrls.square_medium)
-                .headers(PixivApi.getHeaders()).build(),
+            pixivImage(if (largePreview) imageUrls.medium else imageUrls.square_medium),
             contentDescription = "preview",
             contentScale = ContentScale.Crop,
             modifier = imgMod,
@@ -206,7 +204,7 @@ fun IllustCard(
                     Icons.Default.Favorite,
                     contentDescription = "Favorite",
                     modifier = Modifier.size(20.dp),
-                    tint = if (bookmarked) Color(0xffff4060) else Color.White
+                    tint = if (bookmarked) MaterialTheme.colors.secondary else Color.White
                 )
         }
     }

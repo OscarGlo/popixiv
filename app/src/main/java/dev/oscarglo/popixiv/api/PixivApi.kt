@@ -1,5 +1,6 @@
 package dev.oscarglo.popixiv.api
 
+import androidx.compose.ui.text.intl.Locale
 import dev.oscarglo.popixiv.util.Prefs
 import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
@@ -95,6 +96,7 @@ interface PixivApi {
     companion object {
         fun getHeaders(accessToken: String = Prefs.PIXIV_ACCESS_TOKEN.get()) = Headers.Builder()
             .add("User-Agent", userAgent)
+            .add("Accept-Language", "${Locale.current.language}_${Locale.current.region}")
             .add("Referer", "https://app-api.pixiv.net/")
             .add("Authorization", "Bearer $accessToken")
             .build()

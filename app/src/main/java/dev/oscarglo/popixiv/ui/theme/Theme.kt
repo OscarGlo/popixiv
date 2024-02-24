@@ -29,10 +29,15 @@ fun AppTheme(content: @Composable () -> Unit) {
         darkTheme -> darkColors(
             primary = Color(0xff0096fa),
             onPrimary = Color.White,
+            secondary = Color(0xffff4060),
+            onSecondary = Color.White
         )
+
         else -> lightColors(
             primary = Color(0xff0096fa),
-            onPrimary = Color.White
+            onPrimary = Color.White,
+            secondary = Color(0xffff4060),
+            onSecondary = Color.White
         )
     }
 
