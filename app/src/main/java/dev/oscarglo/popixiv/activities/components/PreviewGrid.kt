@@ -2,13 +2,14 @@ package dev.oscarglo.popixiv.activities.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -24,8 +25,8 @@ import androidx.navigation.NavController
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.util.Prefs
 import dev.oscarglo.popixiv.util.globalViewModel
-import kotlin.math.min
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PreviewGrid(navController: NavController, fetcherKey: String, label: String) {
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
@@ -43,7 +44,8 @@ fun PreviewGrid(navController: NavController, fetcherKey: String, label: String)
 
     BoxWithConstraints {
         val lines = if (cardSize < 200) 2 else 1
-        val count = min(fetcher.illusts.size, (maxWidth.value.toInt() / cardSize) * lines)
+        val byLine = maxWidth.value.toInt() / cardSize
+        val count = byLine * lines
 
         Column {
             Row(
@@ -70,22 +72,27 @@ fun PreviewGrid(navController: NavController, fetcherKey: String, label: String)
                     }
             }
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(cardSize.dp),
+            FlowRow(
                 verticalArrangement = Arrangement.spacedBy(gap.dp),
-                horizontalArrangement = Arrangement.spacedBy(gap.dp)
+                horizontalArrangement = Arrangement.spacedBy(gap.dp),
+                maxItemsInEachRow = byLine
             ) {
-                this.items(count) { i ->
-                    IllustCard(
-                        fetcher.illusts[i],
-                        onClick = {
-                            fetcherViewModel.updateLast(fetcherKey) {
-                                fetcher.copy(current = i)
-                            }
-                            navController.navigate("gallery/$fetcherKey")
-                        },
-                        gap = (gap / 2).dp
-                    )
+                (0 until count).map { i ->
+                    if (i >= fetcher.illusts.size)
+                    // Dummy element
+                        Box(modifier = Modifier.weight(1f))
+                    else
+                        IllustCard(
+                            fetcher.illusts[i],
+                            onClick = {
+                                fetcherViewModel.updateLast(fetcherKey) {
+                                    fetcher.copy(current = i)
+                                }
+                                navController.navigate("gallery/$fetcherKey")
+                            },
+                            gap = (gap / 2).dp,
+                            modifier = Modifier.weight(1f)
+                        )
                 }
             }
         }

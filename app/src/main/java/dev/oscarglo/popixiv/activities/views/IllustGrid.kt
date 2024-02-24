@@ -115,13 +115,14 @@ fun IllustGrid(
     fun GridIllust(indexedIllust: Pair<Int, Illust>) {
         IllustCard(
             indexedIllust.second,
+            Modifier,
+            largePreview = stagger,
             onClick = {
                 fetcherViewModel.updateLast(fetcherKey) {
                     fetcher.copy(current = indexedIllust.first)
                 }
                 navController.navigate("gallery/$fetcherKey")
             },
-            largePreview = stagger,
             gap = (gap / 2).dp
         )
     }

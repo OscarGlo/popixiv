@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,7 +44,11 @@ import retrofit2.HttpException
 
 @Composable
 fun IllustCard(
-    illust: Illust, onClick: (illust: Illust) -> Unit, largePreview: Boolean = false, gap: Dp = 0.dp
+    illust: Illust,
+    modifier: Modifier = Modifier,
+    largePreview: Boolean = false,
+    onClick: (illust: Illust) -> Unit,
+    gap: Dp = 0.dp
 ) {
     var bookmarked by rememberSaveable { mutableStateOf(illust.is_bookmarked) }
     var loadingBookmark by rememberSaveable { mutableStateOf(false) }
@@ -72,17 +75,15 @@ fun IllustCard(
             contentDescription = "preview",
             contentScale = ContentScale.Crop,
             modifier = imgMod,
-            onSuccess = { loading = false }
+            onSuccess = { loading = false },
         )
     }
 
-    val mod = if (largePreview) Modifier else Modifier.aspectRatio(1f)
+    val mod = if (largePreview) modifier else modifier.aspectRatio(1f)
     Box(
         modifier = mod.background(MaterialTheme.colors.background),
     ) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .clickable { onClick(illust) }) {
+        Box(modifier = Modifier.clickable { onClick(illust) }) {
             if (!multi || illust.page_count == 1) IllustPreview(illust.image_urls)
             else when (illust.page_count) {
                 2 -> Column(
