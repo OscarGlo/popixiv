@@ -55,6 +55,8 @@ data class Illust(
             )
         else
             meta_pages.onEachIndexed { i, page -> page.filename = "${id}_p$i.png" }
+
+    val r18 get() = tags.any { it.name == "R-18" }
 }
 
 data class Tag(
