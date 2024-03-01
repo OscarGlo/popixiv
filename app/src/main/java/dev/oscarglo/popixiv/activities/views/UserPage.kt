@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -125,8 +126,10 @@ fun UserPage(
                         AsyncImage(
                             if (user != null) pixivImage(user!!.profile_image_urls.values.last()) else null,
                             contentDescription = user?.account,
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .clip(CircleShape)
+                                .size(80.dp)
                                 .background(MaterialTheme.colors.background)
                         )
 
