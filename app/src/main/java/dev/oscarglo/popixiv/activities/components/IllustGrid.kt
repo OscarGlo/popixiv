@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -47,7 +49,9 @@ fun IllustGrid(
     modifier: Modifier = Modifier,
     showDates: Boolean = false,
     onDateChange: (date: String) -> Unit = {},
-    placeholder: @Composable BoxScope.() -> Unit = { Text("No illusts") }
+    placeholder: @Composable BoxScope.() -> Unit = {
+        Placeholder(Icons.Default.QuestionMark, "No illusts")
+    }
 ) {
     val context = LocalContext.current
 

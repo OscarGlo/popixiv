@@ -53,6 +53,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.oscarglo.popixiv.activities.components.IllustGrid
+import dev.oscarglo.popixiv.activities.components.Placeholder
 import dev.oscarglo.popixiv.activities.components.TagChip
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
@@ -220,17 +221,7 @@ fun SearchPage(navController: NavController, query: String? = null) {
                     navController = navController,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.ImageSearch,
-                            contentDescription = "no result",
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Text("No results", fontSize = 20.sp)
-                    }
+                    Placeholder(icon = Icons.Default.ImageSearch, label = "No results")
                 }
             }
         }
