@@ -1,6 +1,5 @@
 package dev.oscarglo.popixiv.activities.views
 
-import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,17 +29,6 @@ import dev.oscarglo.popixiv.activities.viewModels.FollowMeta
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
 import dev.oscarglo.popixiv.activities.viewModels.RestrictMeta
 import dev.oscarglo.popixiv.util.globalViewModel
-import java.util.Date
-import java.util.Locale
-
-val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
-
-fun dateToString(date: Date): String {
-    val day = date.date.toString().padStart(2, '0')
-    val month = (1 + date.month).toString().padStart(2, '0')
-    val year = 1900 + date.year
-    return "$day/$month/$year"
-}
 
 @Composable
 fun IllustGridPage(

@@ -67,9 +67,11 @@ import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.api.IllustPage
 import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.ui.theme.AppTheme
+import dev.oscarglo.popixiv.util.displayDateTimeFormat
 import dev.oscarglo.popixiv.util.getImagesDir
 import dev.oscarglo.popixiv.util.getImagesPath
 import dev.oscarglo.popixiv.util.globalViewModel
+import dev.oscarglo.popixiv.util.pixivDateFormat
 import dev.oscarglo.popixiv.util.pixivImage
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -299,6 +301,11 @@ fun IllustView(navController: NavController, illust: Illust) {
 
                         if (illust.caption.isNotBlank())
                             HtmlText(illust.caption)
+
+                        Text(
+                            displayDateTimeFormat.format(pixivDateFormat.parse(illust.create_date)),
+                            color = MaterialTheme.colors.onBackground.copy(alpha = 0.7f)
+                        )
 
                         FlowRow(
                             verticalArrangement = Arrangement.spacedBy(4.dp),

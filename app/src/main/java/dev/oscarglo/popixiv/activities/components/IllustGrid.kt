@@ -31,11 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import dev.oscarglo.popixiv.activities.LoginActivity
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
-import dev.oscarglo.popixiv.activities.views.dateFormat
-import dev.oscarglo.popixiv.activities.views.dateToString
 import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.util.Prefs
+import dev.oscarglo.popixiv.util.displayShortDateFormat
 import dev.oscarglo.popixiv.util.globalViewModel
+import dev.oscarglo.popixiv.util.pixivDateFormat
 import retrofit2.HttpException
 import kotlin.math.max
 
@@ -54,8 +54,9 @@ fun IllustGrid(
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
     val fetcher = fetcherViewModel.get(fetcherKey)
 
-    val illustGroups = fetcher.illusts.mapIndexed { i, illust -> i to illust }
-        .groupBy { dateToString(dateFormat.parse(it.second.create_date)) }
+    val illustGroups = fetcher.illusts
+        .mapIndexed { i, illust -> i to illust }
+        .groupBy { displayShortDateFormat.format(pixivDateFormat.parse(it.second.create_date)) }
 
     val refreshing by rememberSaveable { mutableStateOf(false) }
     val showIndicator = refreshing || (!fetcher.done && fetcher.illusts.isEmpty())
