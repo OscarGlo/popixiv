@@ -245,7 +245,7 @@ fun IllustView(navController: NavController, illust: Illust) {
                         .fillMaxSize()
                         .verticalScroll(scrollState)
                 ) {
-                    illust.pages.map { page ->
+                    illust.pages.mapIndexed { i, page ->
                         Box {
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
@@ -290,6 +290,24 @@ fun IllustView(navController: NavController, illust: Illust) {
                                         modifier = Modifier.align(Alignment.Center)
                                     )
                             }
+
+                            if (illust.page_count > 1)
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopStart)
+                                        .padding(4.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Black.copy(alpha = 0.6F))
+                                        .size(32.dp)
+                                ) {
+                                    Text(
+                                        (i + 1).toString(),
+                                        color = Color.White,
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .padding(top = 1.dp),
+                                    )
+                                }
                         }
                     }
 
