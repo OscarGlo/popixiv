@@ -3,6 +3,7 @@ package dev.oscarglo.popixiv.activities
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
@@ -34,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -189,6 +191,8 @@ class NavigationTab(val icon: ImageVector, val label: String, val content: @Comp
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeLayout(navController: NavController) {
+    val activity = LocalContext.current as MainActivity
+
     val appViewModel = globalViewModel<AppViewModel>()
     val user by appViewModel.user.collectAsState()
 
@@ -212,8 +216,10 @@ fun HomeLayout(navController: NavController) {
         },
     )
 
+    val initialPage = 0
+
     val coroutineScope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(0, 0f) { navigationTabs.size }
+    val pagerState = rememberPagerState(initialPage, 0f) { navigationTabs.size }
 
     Scaffold(bottomBar = {
         BottomNavigation {
@@ -244,5 +250,14 @@ fun HomeLayout(navController: NavController) {
 
             SaveToast(modifier = Modifier.align(Alignment.BottomCenter))
         }
+    }
+
+    BackHandler {
+        if (pagerState.currentPage != initialPage)
+            coroutineScope.launch {
+                pagerState.animateScrollToPage(initialPage, 0f)
+            }
+        else
+            activity.moveTaskToBack(false);
     }
 }
