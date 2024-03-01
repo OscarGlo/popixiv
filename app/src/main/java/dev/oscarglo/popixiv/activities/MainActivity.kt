@@ -56,7 +56,6 @@ import dev.oscarglo.popixiv.api.AuthApi
 import dev.oscarglo.popixiv.api.User
 import dev.oscarglo.popixiv.ui.theme.AppTheme
 import dev.oscarglo.popixiv.util.Prefs
-import dev.oscarglo.popixiv.util.getImagesDir
 import dev.oscarglo.popixiv.util.globalViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -70,8 +69,6 @@ class AppViewModel : ViewModel() {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        getImagesDir().mkdir()
 
         Prefs.init(this)
         if (!Prefs.PIXIV_REFRESH_TOKEN.exists())

@@ -1,6 +1,9 @@
 package dev.oscarglo.popixiv.activities.views
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.content.Context
+import android.provider.MediaStore
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -47,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -64,6 +68,7 @@ import dev.oscarglo.popixiv.api.IllustPage
 import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.ui.theme.AppTheme
 import dev.oscarglo.popixiv.util.getImagesDir
+import dev.oscarglo.popixiv.util.getImagesPath
 import dev.oscarglo.popixiv.util.globalViewModel
 import dev.oscarglo.popixiv.util.pixivImage
 import kotlinx.coroutines.runBlocking
@@ -74,7 +79,7 @@ import java.io.File
 
 val client = OkHttpClient.Builder().build()
 
-fun downloadPage(saveViewModel: SaveViewModel, page: IllustPage) {
+fun downloadPage(context: Context, saveViewModel: SaveViewModel, page: IllustPage) {
     Thread {
         saveViewModel.saving.value += page.filename
 
@@ -87,8 +92,27 @@ fun downloadPage(saveViewModel: SaveViewModel, page: IllustPage) {
             .newCall(req)
             .execute()
         val bytes = res.body?.bytes()
-        if (bytes != null)
-            File(getImagesDir(), page.filename).writeBytes(bytes)
+
+        if (bytes != null) {
+            var values = ContentValues().apply {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, getImagesPath())
+                put(MediaStore.MediaColumns.DISPLAY_NAME, page.filename)
+                put(MediaStore.MediaColumns.IS_PENDING, true)
+            }
+            val uri =
+                context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+            if (uri != null) {
+                val output = context.contentResolver.openOutputStream(uri)
+                output?.write(bytes)
+                output?.close()
+
+                values = ContentValues().apply {
+                    put(MediaStore.Images.ImageColumns.IS_PENDING, false)
+                }
+                context.contentResolver.update(uri, values, null, null)
+            }
+        }
 
         saveViewModel.saving.value -= page.filename
     }.start()
@@ -124,6 +148,8 @@ fun Gallery(fetcherKey: String, navController: NavController) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun IllustView(navController: NavController, illust: Illust) {
+    val context = LocalContext.current
+
     val saveViewModel = globalViewModel<SaveViewModel>()
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
 
@@ -197,7 +223,7 @@ fun IllustView(navController: NavController, illust: Illust) {
                         }
 
                         IconButton(onClick = {
-                            illust.pages.forEach { downloadPage(saveViewModel, it) }
+                            illust.pages.forEach { downloadPage(context, saveViewModel, it) }
                         }) {
                             Icon(
                                 if (allDownloaded) Icons.Default.DownloadDone
@@ -241,7 +267,7 @@ fun IllustView(navController: NavController, illust: Illust) {
                                     .clip(CircleShape)
                                     .background(Color.Black.copy(alpha = 0.6F))
                                     .size(48.dp)
-                                    .clickable { downloadPage(saveViewModel, page) },
+                                    .clickable { downloadPage(context, saveViewModel, page) },
                             ) {
                                 if (savingPages.contains(page.filename))
                                     CircularProgressIndicator(
