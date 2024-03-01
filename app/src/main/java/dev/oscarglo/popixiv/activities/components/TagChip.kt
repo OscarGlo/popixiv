@@ -16,10 +16,10 @@ import androidx.compose.ui.unit.sp
 import dev.oscarglo.popixiv.api.Tag
 
 @Composable
-fun Tag(tag: Tag) {
+fun TagChip(tag: Tag, modifier: Modifier = Modifier) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier
+        modifier = modifier
             .clip(CircleShape)
             .background(
                 if (tag.name == "R-18") MaterialTheme.colors.secondary

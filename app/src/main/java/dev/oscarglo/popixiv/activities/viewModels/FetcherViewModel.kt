@@ -19,7 +19,8 @@ class FetcherViewModel : ViewModel() {
             mapOf(
                 "follow" to IllustFetcher.follow(),
                 "bookmark" to IllustFetcher.bookmark(BookmarkMeta("public")),
-                "user" to IllustFetcher.user(UserMeta())
+                "user" to IllustFetcher.user(UserMeta()),
+                "search" to IllustFetcher.search(SearchMeta("", offset = 0))
             )
         )
     )

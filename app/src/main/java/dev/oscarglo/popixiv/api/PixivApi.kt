@@ -62,7 +62,7 @@ data class Illust(
 
 data class Tag(
     val name: String,
-    val translated_name: String?
+    val translated_name: String? = null
 )
 
 data class User(
@@ -91,6 +91,10 @@ data class IllustPage(
 
 data class UserResponse(
     val user: User
+)
+
+data class TagResponse(
+    val tags: List<Tag>
 )
 
 val userAgent =
@@ -156,6 +160,31 @@ interface PixivApi {
         @Query("offset") offset: Int? = 0,
     ): IllustResponse
 
+    @GET("/v2/search/autocomplete?merge_plain_keyword_results=true")
+    suspend fun getSearchAutocomplete(
+        @Query("word") word: String?
+    ): TagResponse
+
+    @GET("/v1/search/popular-preview/illust?merge_plain_keyword_results=true")
+    suspend fun getSearchIllustPreview(
+        @Query("word") word: String,
+        @Query("sort") sort: String = "popular_desc", // date_desc / date_asc / popular_desc
+        @Query("search_target") search_target: String?, // partial_match_for_tags / exact_match_for_tags / title_and_caption
+        @Query("bookmark_num") bookmark_num: Int?, // 50000, 30000, 20000, 10000, 5000, 1000, 500, 250, 100, 0
+        @Query("duration") duration: String? // null / within_last_day / within_last_week / within_last_month / within_half_year / within_year
+    ): IllustResponse
+
+    @GET("/v1/search/illust?merge_plain_keyword_results=true")
+    suspend fun getSearchIllusts(
+        @Query("word") word: String,
+        @Query("sort") sort: String = "date_desc", // date_desc / date_asc / popular_desc
+        @Query("search_target") search_target: String? = null, // partial_match_for_tags / exact_match_for_tags / title_and_caption
+        @Query("start_date") start_date: String? = null,
+        @Query("end_date") end_date: String? = null,
+        @Query("bookmark_num") bookmark_num: Int? = null, // 50000, 30000, 20000, 10000, 5000, 1000, 500, 250, 100, 0
+        @Query("offset") offset: Int? = 0,
+    ): IllustResponse
+
     @GET("/v1/user/detail")
     suspend fun getUserDetail(
         @Query("user_id") id: Long
@@ -187,6 +216,5 @@ interface PixivApi {
     suspend fun deleteFollow(
         @Field("user_id") user_id: Long
     ): ResponseBody
-
 }
 

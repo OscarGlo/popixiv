@@ -13,6 +13,8 @@ class BookmarkMeta(restrict: String, val userId: Long? = null, val maxId: Long? 
 
 class UserMeta(val userId: Long? = null, val offset: Int = 0)
 
+class SearchMeta(val query: String, val offset: Int = 0)
+
 open class IllustFetcher<T>(
     val meta: T,
     val fetchFn: suspend IllustFetcher<T>.() -> IllustFetcher<T>,
@@ -39,11 +41,7 @@ open class IllustFetcher<T>(
             return illusts + newIllusts.filter { !ids.contains(it.id) }
         }
 
-        fun follow(
-            meta: FollowMeta = FollowMeta("all"),
-            illusts: List<Illust> = emptyList(),
-            current: Int = 0,
-        ) = IllustFetcher(
+        fun follow(meta: FollowMeta = FollowMeta("all")) = IllustFetcher(
             meta,
             {
                 val data = PixivApi.instance.getFollowIllusts(this.meta.restrict, this.meta.offset)
@@ -66,16 +64,10 @@ open class IllustFetcher<T>(
                     illusts = emptyList(),
                     done = false,
                 )
-            },
-            illusts,
-            current,
+            }
         )
 
-        fun bookmark(
-            meta: BookmarkMeta,
-            illusts: List<Illust> = emptyList(),
-            current: Int = 0,
-        ) = IllustFetcher(
+        fun bookmark(meta: BookmarkMeta) = IllustFetcher(
             meta,
             {
                 if (this.meta.userId == null)
@@ -107,16 +99,10 @@ open class IllustFetcher<T>(
                     illusts = emptyList(),
                     done = false,
                 )
-            },
-            illusts,
-            current,
+            }
         )
 
-        fun user(
-            meta: UserMeta,
-            illusts: List<Illust> = emptyList(),
-            current: Int = 0,
-        ) = IllustFetcher(
+        fun user(meta: UserMeta) = IllustFetcher(
             meta,
             {
                 if (this.meta.userId == null)
@@ -143,9 +129,37 @@ open class IllustFetcher<T>(
                     illusts = emptyList(),
                     done = false,
                 )
+            }
+        )
+
+        fun search(meta: SearchMeta) = IllustFetcher(
+            meta,
+            {
+                if (this.meta.query.isBlank())
+                    return@IllustFetcher this.copy(done = true)
+
+                val data =
+                    PixivApi.instance.getSearchIllusts(this.meta.query, offset = this.meta.offset)
+
+                return@IllustFetcher if (data.next_url != null) {
+                    val nextOffset = Uri.parse(data.next_url).getQueryParameter("offset")?.toInt()
+
+                    this.copy(
+                        meta = SearchMeta(
+                            this.meta.query,
+                            nextOffset ?: (this.meta.offset + data.illusts.size)
+                        ),
+                        illusts = mergeIllusts(this.illusts, data.illusts),
+                    )
+                } else this.copy(illusts = mergeIllusts(this.illusts, data.illusts), done = true)
             },
-            illusts,
-            current,
+            {
+                this.copy(
+                    meta = SearchMeta(this.meta.query),
+                    illusts = emptyList(),
+                    done = false,
+                )
+            }
         )
     }
 }

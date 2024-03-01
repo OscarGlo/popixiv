@@ -24,6 +24,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +47,8 @@ import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
 import dev.oscarglo.popixiv.activities.viewModels.UserMeta
 import dev.oscarglo.popixiv.activities.views.Gallery
-import dev.oscarglo.popixiv.activities.views.IllustGrid
+import dev.oscarglo.popixiv.activities.views.IllustGridPage
+import dev.oscarglo.popixiv.activities.views.SearchPage
 import dev.oscarglo.popixiv.activities.views.SettingTabPage
 import dev.oscarglo.popixiv.activities.views.SettingsPage
 import dev.oscarglo.popixiv.activities.views.UserPage
@@ -168,7 +170,7 @@ fun AppRouter() {
             "grid/{key}",
             arguments = listOf(navArgument("key") { type = NavType.StringType })
         ) {
-            IllustGrid(it.arguments?.getString("key")!!, navController, hasBackButton = true)
+            IllustGridPage(it.arguments?.getString("key")!!, navController, hasBackButton = true)
         }
         composable(
             "gallery/{key}",
@@ -184,19 +186,19 @@ class NavigationTab(val icon: ImageVector, val label: String, val content: @Comp
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeLayout(navController: NavController) {
-    val coroutineScope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(0, 0f) { 3 }
-
     val appViewModel = globalViewModel<AppViewModel>()
     val user by appViewModel.user.collectAsState()
 
     val navigationTabs = listOf(
         NavigationTab(Icons.Default.Home, "Feed") {
-            IllustGrid(
+            IllustGridPage(
                 "follow",
                 navController,
                 showDates = true
             )
+        },
+        NavigationTab(Icons.Default.Search, "Search") {
+            SearchPage(navController)
         },
         NavigationTab(Icons.Default.Person, "Account") {
             if (user != null)
@@ -206,6 +208,9 @@ fun HomeLayout(navController: NavController) {
             SettingsPage(navController)
         },
     )
+
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(0, 0f) { navigationTabs.size }
 
     Scaffold(bottomBar = {
         BottomNavigation {

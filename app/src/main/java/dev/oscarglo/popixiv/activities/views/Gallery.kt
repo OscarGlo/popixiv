@@ -54,7 +54,7 @@ import coil.compose.AsyncImage
 import dev.oscarglo.popixiv.activities.components.HtmlText
 import dev.oscarglo.popixiv.activities.components.SaveToast
 import dev.oscarglo.popixiv.activities.components.SaveViewModel
-import dev.oscarglo.popixiv.activities.components.Tag
+import dev.oscarglo.popixiv.activities.components.TagChip
 import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
@@ -278,7 +278,7 @@ fun IllustView(navController: NavController, illust: Illust) {
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            illust.tags.map { Tag(it) }
+                            illust.tags.map { TagChip(it) }
                         }
                     }
                 }
