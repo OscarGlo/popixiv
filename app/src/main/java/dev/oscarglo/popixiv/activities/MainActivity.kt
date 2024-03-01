@@ -175,6 +175,12 @@ fun AppRouter() {
         ) {
             Gallery(it.arguments?.getString("key")!!, navController)
         }
+        composable(
+            "search/{query}",
+            arguments = listOf(navArgument("query") { type = NavType.StringType })
+        ) {
+            SearchPage(navController, it.arguments?.getString("query")!!)
+        }
     }
 }
 

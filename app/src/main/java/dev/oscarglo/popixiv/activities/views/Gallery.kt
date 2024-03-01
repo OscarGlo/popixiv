@@ -329,7 +329,7 @@ fun IllustView(navController: NavController, illust: Illust) {
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            illust.tags.map { TagChip(it) }
+                            illust.tags.map { TagChip(it, navController = navController) }
                         }
                     }
                 }

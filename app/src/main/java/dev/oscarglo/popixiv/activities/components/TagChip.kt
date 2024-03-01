@@ -1,6 +1,7 @@
 package dev.oscarglo.popixiv.activities.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -13,13 +14,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
+import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
+import dev.oscarglo.popixiv.activities.viewModels.SearchMeta
 import dev.oscarglo.popixiv.api.Tag
+import dev.oscarglo.popixiv.util.globalViewModel
 
 @Composable
-fun TagChip(tag: Tag, modifier: Modifier = Modifier) {
+fun TagChip(tag: Tag, modifier: Modifier = Modifier, navController: NavController? = null) {
+    val fetcherViewModel = globalViewModel<FetcherViewModel>()
+
+    var mod = modifier
+    if (navController != null)
+        mod = mod.clickable {
+            fetcherViewModel.push(
+                mapOf(
+                    "search" to IllustFetcher.search(SearchMeta(tag.name))
+                )
+            )
+            navController.navigate("search/${tag.name}–${tag.translated_name}")
+        }
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = modifier
+        modifier = mod
             .clip(CircleShape)
             .background(
                 if (tag.name == "R-18") MaterialTheme.colors.secondary
