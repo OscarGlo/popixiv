@@ -86,8 +86,12 @@ class SearchViewModel : ViewModel() {
 }
 
 val tagSaver = Saver<List<Tag>, String>(
-    { tags -> tags.map { it.name + "–" + it.translated_name }.joinToString("—") },
-    { str -> str.split("—").map { part -> part.split("–").let { Tag(it[0], it.getOrNull(1)) } } }
+    { tags -> tags.joinToString("—") { it.name + "–" + it.translated_name } },
+    { str ->
+        str.split("—")
+            .filter { it.isNotBlank() }
+            .map { part -> part.split("–").let { Tag(it[0], it.getOrNull(1)) } }
+    }
 )
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
@@ -107,16 +111,10 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
     val showDropdown = focused && autocomplete.isNotEmpty()
 
     LaunchedEffect(query) {
-        if (tags.isNotEmpty())
+        if (query.isBlank() || tags.isNotEmpty())
             return@LaunchedEffect
 
-        tags = query
-            .split("—")
-            .filter { it.isNotBlank() }
-            .map {
-                val values = it.split("–")
-                Tag(values[0], values.getOrNull(1))
-            }
+        tagSaver.restore(query)?.let { tags = it }
     }
 
     fun handleBack() {
