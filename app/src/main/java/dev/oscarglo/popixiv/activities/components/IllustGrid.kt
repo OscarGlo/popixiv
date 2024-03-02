@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -61,6 +62,7 @@ fun IllustGrid(
     val illustGroups = fetcher.illusts
         .mapIndexed { i, illust -> i to illust }
         .groupBy { displayShortDateFormat.format(pixivDateFormat.parse(it.second.create_date)) }
+    var firstLoad by rememberSaveable { mutableStateOf(true) }
 
     val refreshing by rememberSaveable { mutableStateOf(false) }
     val showIndicator = refreshing || (!fetcher.done && fetcher.illusts.isEmpty())
@@ -68,6 +70,13 @@ fun IllustGrid(
         showIndicator,
         onRefresh = { fetcherViewModel.reset(fetcherKey) }
     )
+
+    LaunchedEffect(illustGroups) {
+        if (firstLoad && illustGroups.isNotEmpty()) {
+            onDateChange(illustGroups.keys.toList().first())
+            firstLoad = false
+        }
+    }
 
     val stagger by Prefs.APPEARANCE_GRID_STAGGER.booleanState()
     val gap by Prefs.APPEARANCE_GRID_GAP.intState()
