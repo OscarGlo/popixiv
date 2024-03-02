@@ -89,7 +89,7 @@ val tagSaver = Saver<List<Tag>, String>(
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun SearchPage(navController: NavController, query: String? = null) {
+fun SearchPage(navController: NavController, query: String = "") {
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
     val searchViewModel = viewModel<SearchViewModel>()
 
@@ -104,8 +104,13 @@ fun SearchPage(navController: NavController, query: String? = null) {
     val showDropdown = focused && autocomplete.isNotEmpty()
 
     LaunchedEffect(query) {
-        if (query != null)
-            tags = query.split("—").map {
+        if (tags.isNotEmpty())
+            return@LaunchedEffect
+
+        tags = query
+            .split("—")
+            .filter { it.isNotBlank() }
+            .map {
                 val values = it.split("–")
                 Tag(values[0], values.getOrNull(1))
             }
