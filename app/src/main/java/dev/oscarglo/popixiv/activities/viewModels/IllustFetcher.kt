@@ -15,6 +15,8 @@ class UserMeta(val userId: Long? = null, val offset: Int = 0)
 
 class SearchMeta(val query: String, val offset: Int = 0)
 
+class IllustMeta(val id: Long)
+
 open class IllustFetcher<T>(
     val meta: T,
     val fetchFn: suspend IllustFetcher<T>.() -> IllustFetcher<T>,
@@ -160,6 +162,17 @@ open class IllustFetcher<T>(
                     done = false,
                 )
             }
+        )
+
+        fun illust(meta: IllustMeta) = IllustFetcher(
+            meta,
+            {
+                this.copy(
+                    illusts = listOf(PixivApi.instance.getIllustDetail(this.meta.id).illust),
+                    done = true
+                )
+            },
+            { this.copy(illusts = emptyList(), done = false) }
         )
     }
 }

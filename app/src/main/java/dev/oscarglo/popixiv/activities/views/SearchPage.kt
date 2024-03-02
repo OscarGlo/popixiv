@@ -1,5 +1,6 @@
 package dev.oscarglo.popixiv.activities.views
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +26,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.runtime.Composable
@@ -89,7 +92,7 @@ val tagSaver = Saver<List<Tag>, String>(
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun SearchPage(navController: NavController, query: String = "") {
+fun SearchPage(navController: NavController, query: String = "", hasBackButton: Boolean = false) {
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
     val searchViewModel = viewModel<SearchViewModel>()
 
@@ -116,106 +119,118 @@ fun SearchPage(navController: NavController, query: String = "") {
             }
     }
 
+    fun handleBack() {
+        fetcherViewModel.pop()
+        navController.navigateUp()
+    }
+
     AppTheme {
         Surface {
             Column(modifier = Modifier.fillMaxSize()) {
-                ExposedDropdownMenuBox(
-                    expanded = showDropdown,
-                    onExpandedChange = {}
-                ) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colors.onSurface.copy(alpha = 0.15f))
-                            .padding(12.dp, 4.dp)
-                    ) {
-                        tags.mapIndexed { i, tag ->
-                            TagChip(
-                                tag,
-                                modifier = Modifier
-                                    .clickable { tags = tags.filterIndexed { j, _ -> i != j } }
-                                    .align(Alignment.CenterVertically),
-                            )
+                Row {
+                    if (hasBackButton)
+                        IconButton(onClick = ::handleBack) {
+                            Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "back")
                         }
 
-                        BasicTextField(
-                            word,
-                            { searchViewModel.word.value = it },
-                            textStyle = TextStyle(color = MaterialTheme.colors.onBackground),
-                            cursorBrush = SolidColor(MaterialTheme.colors.onBackground),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = if (word.isNotBlank()) ImeAction.Done
-                                else if (tags.isNotEmpty()) ImeAction.Search
-                                else ImeAction.None
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    tags += Tag(word.trim())
-                                    searchViewModel.word.value = ""
-                                },
-                                onSearch = {
-                                    fetcherViewModel.updateLast("search") {
-                                        (this as IllustFetcher<SearchMeta>)
-                                            .reset()
-                                            .copy(
-                                                meta = SearchMeta(
-                                                    tags.joinToString(" ") { it.name },
-                                                    offset = 0
-                                                )
-                                            )
-                                    }
-                                    focusManager.clearFocus()
-                                }
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .align(Alignment.CenterVertically)
-                                .focusRequester(focusRequester)
-                                .onFocusChanged { focused = it.isFocused },
-                        )
-
-                        IconButton(
-                            onClick = {
-                                tags = emptyList()
-                                searchViewModel.word.value = ""
-                                searchViewModel.autocomplete.value = emptyList()
-                            },
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(4.dp, 8.dp)
-                                .size(24.dp)
-                        ) {
-                            Icon(Icons.Default.Close, contentDescription = "clear")
-                        }
-                    }
-
-                    ExposedDropdownMenu(
+                    ExposedDropdownMenuBox(
                         expanded = showDropdown,
-                        onDismissRequest = { focusManager.clearFocus() },
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .exposedDropdownSize()
-                            .focusable(false)
+                        onExpandedChange = {}
                     ) {
-                        autocomplete.map {
-                            DropdownMenuItem(onClick = {
-                                tags += it
-                                searchViewModel.word.value = ""
-                                searchViewModel.autocomplete.value = emptyList()
-                            }) {
-                                Text(it.name, fontWeight = FontWeight.SemiBold)
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MaterialTheme.colors.onSurface.copy(alpha = 0.15f))
+                                .padding(12.dp, 4.dp)
+                        ) {
+                            tags.mapIndexed { i, tag ->
+                                TagChip(
+                                    tag,
+                                    modifier = Modifier
+                                        .clickable { tags = tags.filterIndexed { j, _ -> i != j } }
+                                        .align(Alignment.CenterVertically),
+                                )
+                            }
 
-                                if (it.translated_name != null)
-                                    Text(
-                                        it.translated_name,
-                                        fontSize = 12.sp,
-                                        modifier = Modifier
-                                            .padding(start = 8.dp)
-                                    )
+                            BasicTextField(
+                                word,
+                                { searchViewModel.word.value = it },
+                                textStyle = TextStyle(color = MaterialTheme.colors.onBackground),
+                                cursorBrush = SolidColor(MaterialTheme.colors.onBackground),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = if (word.isNotBlank()) ImeAction.Done
+                                    else if (tags.isNotEmpty()) ImeAction.Search
+                                    else ImeAction.None
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        tags += Tag(word.trim())
+                                        searchViewModel.word.value = ""
+                                    },
+                                    onSearch = {
+                                        fetcherViewModel.updateLast("search") {
+                                            (this as IllustFetcher<SearchMeta>)
+                                                .reset()
+                                                .copy(
+                                                    meta = SearchMeta(
+                                                        tags.joinToString(" ") { it.name },
+                                                        offset = 0
+                                                    )
+                                                )
+                                        }
+                                        focusManager.clearFocus()
+                                    }
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .align(Alignment.CenterVertically)
+                                    .focusRequester(focusRequester)
+                                    .onFocusChanged { focused = it.isFocused },
+                            )
+
+                            IconButton(
+                                onClick = {
+                                    tags = emptyList()
+                                    searchViewModel.word.value = ""
+                                    searchViewModel.autocomplete.value = emptyList()
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(4.dp, 8.dp)
+                                    .size(24.dp)
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "clear")
+                            }
+                        }
+
+                        ExposedDropdownMenu(
+                            expanded = showDropdown,
+                            onDismissRequest = { focusManager.clearFocus() },
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .exposedDropdownSize()
+                                .focusable(false)
+                        ) {
+                            autocomplete.map {
+                                DropdownMenuItem(onClick = {
+                                    tags += it
+                                    searchViewModel.word.value = ""
+                                    searchViewModel.autocomplete.value = emptyList()
+                                }) {
+                                    Text(it.name, fontWeight = FontWeight.SemiBold)
+
+                                    if (it.translated_name != null)
+                                        Text(
+                                            it.translated_name,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier
+                                                .padding(start = 8.dp)
+                                        )
+                                }
                             }
                         }
                     }
@@ -231,4 +246,7 @@ fun SearchPage(navController: NavController, query: String = "") {
             }
         }
     }
+
+    if (hasBackButton)
+        BackHandler(onBack = ::handleBack)
 }

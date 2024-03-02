@@ -123,11 +123,17 @@ fun downloadPage(context: Context, saveViewModel: SaveViewModel, page: IllustPag
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun Gallery(fetcherKey: String, navController: NavController) {
+fun Gallery(fetcherKey: String, navController: NavController, popBack: Boolean = false) {
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
     val fetcher = fetcherViewModel.get(fetcherKey)
 
     val pagerState = rememberPagerState(fetcher.current, 0f) { fetcher.illusts.size }
+
+    fun onBack() {
+        if (popBack)
+            fetcherViewModel.pop()
+        navController.navigateUp()
+    }
 
     AppTheme {
         Box {
@@ -137,19 +143,19 @@ fun Gallery(fetcherKey: String, navController: NavController) {
                         fetcherViewModel.fetch(fetcherKey)
                     }
 
-                IllustView(navController, fetcher.illusts[i])
+                IllustView(navController, fetcher.illusts[i], ::onBack)
             }
 
             SaveToast(modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 
-    BackHandler(onBack = { navController.navigateUp() })
+    BackHandler(onBack = ::onBack)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun IllustView(navController: NavController, illust: Illust) {
+fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit = {}) {
     val context = LocalContext.current
 
     val saveViewModel = globalViewModel<SaveViewModel>()
@@ -177,7 +183,7 @@ fun IllustView(navController: NavController, illust: Illust) {
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(onClick = { navController.navigateUp() }) {
+                            IconButton(onClick = { onBack() }) {
                                 Icon(
                                     Icons.AutoMirrored.Default.ArrowBack,
                                     contentDescription = "back"

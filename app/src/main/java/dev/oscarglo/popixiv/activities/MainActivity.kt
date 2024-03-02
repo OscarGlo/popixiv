@@ -1,6 +1,7 @@
 package dev.oscarglo.popixiv.activities
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -31,7 +32,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -47,6 +51,8 @@ import dev.oscarglo.popixiv.activities.components.SaveToast
 import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
+import dev.oscarglo.popixiv.activities.viewModels.IllustMeta
+import dev.oscarglo.popixiv.activities.viewModels.SearchMeta
 import dev.oscarglo.popixiv.activities.viewModels.UserMeta
 import dev.oscarglo.popixiv.activities.views.Gallery
 import dev.oscarglo.popixiv.activities.views.IllustGridPage
@@ -80,20 +86,22 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppTheme {
-                AppRouter()
+                AppRouter(intent.data)
             }
         }
     }
 }
 
 @Composable
-fun AppRouter() {
+fun AppRouter(target: Uri? = null) {
     val navController = rememberNavController()
 
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
     val appViewModel = globalViewModel<AppViewModel>()
 
     val user by appViewModel.user.collectAsState()
+
+    var handledTarget by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect("loadUser") {
         if (user == null)
@@ -123,6 +131,43 @@ fun AppRouter() {
                 UserMeta(user!!.id),
                 done = false
             )
+        }
+    }
+
+    LaunchedEffect("loadTarget") {
+        if (target == null || target.path == null)
+            return@LaunchedEffect
+
+        val parts = target.path!!.split("/").drop(1)
+        if (!handledTarget) {
+            when (parts[0]) {
+                "users" -> {
+                    fetcherViewModel.push(
+                        mapOf(
+                            "user" to IllustFetcher.user(UserMeta(parts[1].toLong())),
+                            "bookmark" to IllustFetcher.bookmark(
+                                BookmarkMeta("public", parts[1].toLong())
+                            )
+                        )
+                    )
+                    navController.navigate("user/${parts[1]}")
+                }
+
+                "tags" -> {
+                    fetcherViewModel.push(
+                        mapOf("search" to IllustFetcher.search(SearchMeta(parts[1])))
+                    )
+                    navController.navigate("search/${parts[1]}")
+                }
+
+                "artworks" -> {
+                    fetcherViewModel.push(
+                        mapOf("illust" to IllustFetcher.illust(IllustMeta(parts[1].toLong())))
+                    )
+                    navController.navigate("gallery/illust?popBack=true")
+                }
+            }
+            handledTarget = true
         }
     }
 
@@ -172,16 +217,26 @@ fun AppRouter() {
             IllustGridPage(it.arguments?.getString("key")!!, navController, hasBackButton = true)
         }
         composable(
-            "gallery/{key}",
-            arguments = listOf(navArgument("key") { type = NavType.StringType })
+            "gallery/{key}?popBack={popBack}",
+            arguments = listOf(
+                navArgument("key") { type = NavType.StringType },
+                navArgument("popBack") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            )
         ) {
-            Gallery(it.arguments?.getString("key")!!, navController)
+            Gallery(
+                it.arguments?.getString("key")!!,
+                navController,
+                popBack = it.arguments?.getBoolean("popBack")!!
+            )
         }
         composable(
             "search/{query}",
             arguments = listOf(navArgument("query") { type = NavType.StringType })
         ) {
-            SearchPage(navController, it.arguments?.getString("query")!!)
+            SearchPage(navController, it.arguments?.getString("query")!!, hasBackButton = true)
         }
     }
 }

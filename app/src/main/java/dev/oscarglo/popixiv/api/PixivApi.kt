@@ -97,6 +97,10 @@ data class TagResponse(
     val tags: List<Tag>
 )
 
+data class IllustDetailResponse(
+    val illust: Illust
+)
+
 val userAgent =
     "PixivAndroidApp/7.13.3 (Android ${android.os.Build.VERSION.RELEASE}; ${android.os.Build.MODEL})"
 
@@ -187,8 +191,13 @@ interface PixivApi {
 
     @GET("/v1/user/detail")
     suspend fun getUserDetail(
-        @Query("user_id") id: Long
+        @Query("user_id") user_id: Long
     ): UserResponse
+
+    @GET("/v1/illust/detail")
+    suspend fun getIllustDetail(
+        @Query("illust_id") illust_id: Long
+    ): IllustDetailResponse
 
     @FormUrlEncoded
     @POST("/v2/illust/bookmark/add")
