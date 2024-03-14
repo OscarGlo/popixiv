@@ -3,6 +3,7 @@ package dev.oscarglo.popixiv.ui.theme
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.SwitchDefaults
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
@@ -54,3 +55,9 @@ fun AppTheme(content: @Composable () -> Unit) {
         content = content
     )
 }
+
+@Composable
+fun switchColors() = SwitchDefaults.colors(
+    checkedThumbColor = MaterialTheme.colors.primary,
+    checkedTrackColor = MaterialTheme.colors.primary.copy(alpha = 0.7f),
+)

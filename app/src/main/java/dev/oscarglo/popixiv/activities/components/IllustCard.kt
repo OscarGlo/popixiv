@@ -1,7 +1,9 @@
 package dev.oscarglo.popixiv.activities.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +44,7 @@ import dev.oscarglo.popixiv.util.pixivImage
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun IllustCard(
     illust: Illust,
@@ -78,6 +81,11 @@ fun IllustCard(
             onSuccess = { loading = false },
         )
     }
+
+    var showBookmarkDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showBookmarkDialog)
+        BookmarkDialog(illust.id) { showBookmarkDialog = false }
 
     val mod = if (largePreview) modifier else modifier.aspectRatio(1f)
     Box(
@@ -171,22 +179,28 @@ fun IllustCard(
             .align(Alignment.BottomEnd)
             .clip(RoundedCornerShape(8.dp, 0.dp, 0.dp, 0.dp))
             .background(Color.Black.copy(alpha = 0.6F))
-            .clickable {
-                if (!loadingBookmark)
-                    Thread {
-                        loadingBookmark = true
-                        try {
-                            runBlocking {
-                                if (bookmarked) PixivApi.instance.deleteBookmark(illust.id)
-                                else PixivApi.instance.addBookmark(illust.id)
-                                bookmarked = !bookmarked
+            .combinedClickable(
+                onClick = {
+                    if (!loadingBookmark)
+                        Thread {
+                            loadingBookmark = true
+                            try {
+                                runBlocking {
+                                    if (bookmarked) PixivApi.instance.deleteBookmark(illust.id)
+                                    else PixivApi.instance.addBookmark(illust.id)
+                                    bookmarked = !bookmarked
+                                }
+                            } catch (e: HttpException) {
+                                e.printStackTrace()
                             }
-                        } catch (e: HttpException) {
-                            e.printStackTrace()
-                        }
-                        loadingBookmark = false
-                    }.start()
-            }
+                            loadingBookmark = false
+                        }.start()
+                },
+                onLongClick = {
+                    if (!loadingBookmark)
+                        showBookmarkDialog = true
+                }
+            )
             .padding(6.dp, 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)

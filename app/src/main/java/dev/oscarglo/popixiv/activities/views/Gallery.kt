@@ -8,6 +8,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import dev.oscarglo.popixiv.activities.components.BookmarkDialog
 import dev.oscarglo.popixiv.activities.components.HtmlText
 import dev.oscarglo.popixiv.activities.components.SaveToast
 import dev.oscarglo.popixiv.activities.components.SaveViewModel
@@ -153,7 +155,7 @@ fun Gallery(fetcherKey: String, navController: NavController, popBack: Boolean =
     BackHandler(onBack = ::onBack)
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit = {}) {
     val context = LocalContext.current
@@ -170,6 +172,11 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
     var loadingBookmark by rememberSaveable { mutableStateOf(false) }
 
     val allDownloaded = illust.pages.all { File(getImagesDir(), it.filename).exists() }
+
+    var showBookmarkDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showBookmarkDialog)
+        BookmarkDialog(illust.id) { showBookmarkDialog = false }
 
     Surface {
         Scaffold(
@@ -340,42 +347,63 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                     }
                 }
 
-                FloatingActionButton(
-                    onClick = {
-                        if (!loadingBookmark)
-                            Thread {
-                                loadingBookmark = true
-                                try {
-                                    runBlocking {
-                                        if (bookmarked) PixivApi.instance.deleteBookmark(illust.id)
-                                        else PixivApi.instance.addBookmark(illust.id)
-                                        bookmarked = !bookmarked
-                                    }
-                                } catch (e: HttpException) {
-                                    e.printStackTrace()
-                                }
-                                loadingBookmark = false
-                            }.start()
-                    },
-                    backgroundColor = MaterialTheme.colors.background,
+                Surface(
+                    elevation = 8.dp,
                     modifier = Modifier
-                        .padding(16.dp)
                         .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                        .size(56.dp)
+                        .shadow(8.dp, CircleShape)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colors.surface)
+                        .combinedClickable(
+                            onClick = {
+                                if (!loadingBookmark)
+                                    Thread {
+                                        loadingBookmark = true
+                                        try {
+                                            runBlocking {
+                                                if (bookmarked) PixivApi.instance.deleteBookmark(
+                                                    illust.id
+                                                )
+                                                else PixivApi.instance.addBookmark(illust.id)
+                                                bookmarked = !bookmarked
+                                            }
+                                        } catch (e: HttpException) {
+                                            e.printStackTrace()
+                                        }
+                                        loadingBookmark = false
+                                    }.start()
+                            },
+                            onLongClick = {
+                                if (!loadingBookmark)
+                                    showBookmarkDialog = true
+                            }
+                        )
                 ) {
-                    if (loadingBookmark)
-                        CircularProgressIndicator(
-                            strokeWidth = 3.dp,
-                            color = MaterialTheme.colors.onBackground,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    else
-                        Icon(
-                            Icons.Default.Favorite,
-                            contentDescription = "Favorite",
-                            modifier = Modifier.size(24.dp),
-                            tint = if (bookmarked) MaterialTheme.colors.secondary
-                            else MaterialTheme.colors.onBackground
-                        )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        if (loadingBookmark)
+                            CircularProgressIndicator(
+                                strokeWidth = 3.dp,
+                                color = MaterialTheme.colors.onBackground,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.Center),
+                            )
+                        else
+                            Icon(
+                                Icons.Default.Favorite,
+                                contentDescription = "Favorite",
+                                tint = if (bookmarked) MaterialTheme.colors.secondary
+                                else MaterialTheme.colors.onBackground,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.Center),
+                            )
+                    }
                 }
             }
         }

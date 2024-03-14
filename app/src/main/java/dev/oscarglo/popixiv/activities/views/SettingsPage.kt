@@ -11,12 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Slider
 import androidx.compose.material.Surface
 import androidx.compose.material.Switch
-import androidx.compose.material.SwitchDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -41,16 +39,11 @@ import androidx.navigation.NavController
 import dev.oscarglo.popixiv.activities.components.PasswordTextField
 import dev.oscarglo.popixiv.activities.components.Select
 import dev.oscarglo.popixiv.ui.theme.AppTheme
+import dev.oscarglo.popixiv.ui.theme.switchColors
 import dev.oscarglo.popixiv.util.Prefs
 import kotlin.math.roundToInt
 
 class SettingTab(val icon: ImageVector, val content: @Composable () -> Unit)
-
-@Composable
-fun switchColors() = SwitchDefaults.colors(
-    checkedThumbColor = MaterialTheme.colors.primary,
-    checkedTrackColor = MaterialTheme.colors.primary.copy(alpha = 0.7f),
-)
 
 val settingsTabs = mapOf(
     "Appearance" to SettingTab(Icons.Default.Visibility) {
