@@ -33,7 +33,10 @@ fun TagChip(tag: Tag, modifier: Modifier = Modifier, navController: NavControlle
                     "search" to IllustFetcher.search(SearchMeta(tag.name))
                 )
             )
-            navController.navigate("search/${tag.name}–${tag.translated_name}")
+            navController.navigate(
+                if (tag.translated_name == null) "search/${tag.name}"
+                else "search/${tag.name}–${tag.translated_name}"
+            )
         }
 
     Row(

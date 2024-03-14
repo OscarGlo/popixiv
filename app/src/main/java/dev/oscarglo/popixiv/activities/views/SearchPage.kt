@@ -86,7 +86,12 @@ class SearchViewModel : ViewModel() {
 }
 
 val tagSaver = Saver<List<Tag>, String>(
-    { tags -> tags.joinToString("—") { it.name + "–" + it.translated_name } },
+    { tags ->
+        tags.joinToString("—") {
+            if (it.translated_name == null) it.name
+            else it.name + "–" + it.translated_name
+        }
+    },
     { str ->
         str.split("—")
             .filter { it.isNotBlank() }
