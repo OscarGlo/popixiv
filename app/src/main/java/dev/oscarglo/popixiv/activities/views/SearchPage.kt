@@ -125,7 +125,10 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
     AppTheme {
         Surface {
             Column(modifier = Modifier.fillMaxSize()) {
-                Row {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
                     if (hasBackButton)
                         IconButton(onClick = ::handleBack) {
                             Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "back")
@@ -139,7 +142,7 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp)
+                                .padding(if (hasBackButton) 0.dp else 8.dp, 8.dp, 8.dp, 8.dp)
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(MaterialTheme.colors.onSurface.copy(alpha = 0.15f))
                                 .padding(12.dp, 4.dp)
