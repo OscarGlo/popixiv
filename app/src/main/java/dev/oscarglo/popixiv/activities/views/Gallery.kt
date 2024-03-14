@@ -38,6 +38,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -257,6 +258,7 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(scrollState)
+                        .padding(bottom = 76.dp)
                 ) {
                     illust.pages.mapIndexed { i, page ->
                         Box {
@@ -324,6 +326,8 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                         }
                     }
 
+                    val lightColor = MaterialTheme.colors.onBackground.copy(alpha = 0.7f)
+
                     Column(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.padding(12.dp)
@@ -335,8 +339,33 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
 
                         Text(
                             displayDateTimeFormat.format(pixivDateFormat.parse(illust.create_date)),
-                            color = MaterialTheme.colors.onBackground.copy(alpha = 0.7f)
+                            color = lightColor
                         )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Visibility,
+                                contentDescription = "Views",
+                                tint = lightColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                illust.total_view.toString(),
+                                color = lightColor,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+
+                            Icon(
+                                Icons.Default.Favorite,
+                                contentDescription = "Bookmarks",
+                                tint = lightColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(illust.total_bookmarks.toString(), color = lightColor)
+                        }
 
                         FlowRow(
                             verticalArrangement = Arrangement.spacedBy(4.dp),
