@@ -3,7 +3,7 @@ package dev.oscarglo.popixiv.util
 import android.os.Environment
 import java.io.File
 
-const val APP_DIR = ""
+const val APP_DIR = "popixiv"
 
 fun getImagesPath() = "${Environment.DIRECTORY_PICTURES}/$APP_DIR"
 
