@@ -49,6 +49,7 @@ fun IllustGrid(
     navController: NavController,
     modifier: Modifier = Modifier,
     showDates: Boolean = false,
+    filters: SearchFilters = SearchFilters(),
     onDateChange: (date: String) -> Unit = {},
     placeholder: @Composable BoxScope.() -> Unit = {
         Placeholder(Icons.Default.QuestionMark, "No illusts")
@@ -61,6 +62,7 @@ fun IllustGrid(
 
     val illustGroups = fetcher.illusts
         .mapIndexed { i, illust -> i to illust }
+        .filter { it.second.total_bookmarks >= (filters.minBookmarks ?: 0) }
         .groupBy { displayShortDateFormat.format(pixivDateFormat.parse(it.second.create_date)) }
     var firstLoad by rememberSaveable { mutableStateOf(true) }
 

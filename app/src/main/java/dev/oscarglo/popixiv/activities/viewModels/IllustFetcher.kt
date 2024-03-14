@@ -13,7 +13,12 @@ class BookmarkMeta(restrict: String, val userId: Long? = null, val maxId: Long? 
 
 class UserMeta(val userId: Long? = null, val offset: Int = 0)
 
-class SearchMeta(val query: String, val offset: Int = 0)
+class SearchMeta(
+    val query: String,
+    val sort: String = "date_desc",
+    val duration: String? = null,
+    val offset: Int = 0
+)
 
 class IllustMeta(val id: Long)
 
@@ -141,7 +146,16 @@ open class IllustFetcher<T>(
                     return@IllustFetcher this.copy(done = true)
 
                 val data =
-                    PixivApi.instance.getSearchIllusts(this.meta.query, offset = this.meta.offset)
+                    if (this.meta.sort == "popular_desc") PixivApi.instance.getSearchIllustPreview(
+                        this.meta.query,
+                        this.meta.sort,
+                        duration = this.meta.duration
+                    )
+                    else PixivApi.instance.getSearchIllusts(
+                        this.meta.query,
+                        this.meta.sort,
+                        offset = this.meta.offset
+                    )
 
                 return@IllustFetcher if (data.next_url != null) {
                     val nextOffset = Uri.parse(data.next_url).getQueryParameter("offset")?.toInt()
@@ -149,6 +163,8 @@ open class IllustFetcher<T>(
                     this.copy(
                         meta = SearchMeta(
                             this.meta.query,
+                            this.meta.sort,
+                            this.meta.duration,
                             nextOffset ?: (this.meta.offset + data.illusts.size)
                         ),
                         illusts = mergeIllusts(this.illusts, data.illusts),
@@ -157,7 +173,7 @@ open class IllustFetcher<T>(
             },
             {
                 this.copy(
-                    meta = SearchMeta(this.meta.query),
+                    meta = SearchMeta(this.meta.query, this.meta.sort, this.meta.duration),
                     illusts = emptyList(),
                     done = false,
                 )

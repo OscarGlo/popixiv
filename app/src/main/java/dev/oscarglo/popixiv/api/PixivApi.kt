@@ -173,9 +173,9 @@ interface PixivApi {
     suspend fun getSearchIllustPreview(
         @Query("word") word: String,
         @Query("sort") sort: String = "popular_desc", // date_desc / date_asc / popular_desc
-        @Query("search_target") search_target: String?, // partial_match_for_tags / exact_match_for_tags / title_and_caption
-        @Query("bookmark_num") bookmark_num: Int?, // 50000, 30000, 20000, 10000, 5000, 1000, 500, 250, 100, 0
-        @Query("duration") duration: String? // null / within_last_day / within_last_week / within_last_month / within_half_year / within_year
+        @Query("search_target") search_target: String? = null, // partial_match_for_tags / exact_match_for_tags / title_and_caption
+        @Query("bookmark_num") bookmark_num: Int? = null, // 50000, 30000, 20000, 10000, 5000, 1000, 500, 250, 100, 0
+        @Query("duration") duration: String? = null // null / within_last_day / within_last_week / within_last_month / within_half_year / within_year
     ): IllustResponse
 
     @GET("/v1/search/illust?merge_plain_keyword_results=true")

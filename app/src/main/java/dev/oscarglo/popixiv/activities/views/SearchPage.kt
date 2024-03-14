@@ -28,6 +28,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,7 +58,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.oscarglo.popixiv.activities.components.IllustGrid
 import dev.oscarglo.popixiv.activities.components.Placeholder
+import dev.oscarglo.popixiv.activities.components.SearchFilters
+import dev.oscarglo.popixiv.activities.components.SearchFiltersDialog
 import dev.oscarglo.popixiv.activities.components.TagChip
+import dev.oscarglo.popixiv.activities.components.searchFiltersSaver
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
 import dev.oscarglo.popixiv.activities.viewModels.SearchMeta
@@ -127,6 +131,24 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
         navController.navigateUp()
     }
 
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var filters by rememberSaveable(stateSaver = searchFiltersSaver) { mutableStateOf(SearchFilters()) }
+
+    if (showFilterDialog)
+        SearchFiltersDialog(filters) {
+            if (it != null) {
+                if (it.sort != filters.sort || it.duration != filters.duration)
+                    fetcherViewModel.updateLast("search") {
+                        (this as IllustFetcher<SearchMeta>)
+                            .reset()
+                            .copy(meta = SearchMeta(meta.query, it.sort, it.duration))
+                    }
+
+                filters = it
+            }
+            showFilterDialog = false
+        }
+
     AppTheme {
         Surface {
             Column(modifier = Modifier.fillMaxSize()) {
@@ -141,13 +163,18 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
 
                     ExposedDropdownMenuBox(
                         expanded = showDropdown,
-                        onExpandedChange = {}
+                        onExpandedChange = {},
+                        modifier = Modifier.weight(1f)
                     ) {
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(if (hasBackButton) 0.dp else 8.dp, 8.dp, 8.dp, 8.dp)
+                                .padding(
+                                    start = if (hasBackButton) 0.dp else 8.dp,
+                                    top = 8.dp,
+                                    bottom = 8.dp
+                                )
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(MaterialTheme.colors.onSurface.copy(alpha = 0.15f))
                                 .padding(12.dp, 4.dp)
@@ -240,11 +267,16 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
                             }
                         }
                     }
+
+                    IconButton(onClick = { showFilterDialog = true }) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Filters")
+                    }
                 }
 
                 IllustGrid(
                     fetcherKey = "search",
                     navController = navController,
+                    filters = filters,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Placeholder(icon = Icons.Default.ImageSearch, label = "No results")
