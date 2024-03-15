@@ -39,25 +39,31 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled._18UpRating
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import dev.oscarglo.popixiv.activities.components.HtmlText
+import dev.oscarglo.popixiv.activities.components.Placeholder
 import dev.oscarglo.popixiv.activities.components.SaveToast
 import dev.oscarglo.popixiv.activities.components.SaveViewModel
 import dev.oscarglo.popixiv.activities.components.TagChip
@@ -70,6 +76,7 @@ import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.api.IllustPage
 import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.ui.theme.AppTheme
+import dev.oscarglo.popixiv.util.Prefs
 import dev.oscarglo.popixiv.util.displayDateTimeFormat
 import dev.oscarglo.popixiv.util.getImagesDir
 import dev.oscarglo.popixiv.util.getImagesPath
@@ -260,22 +267,46 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                         .verticalScroll(scrollState)
                         .padding(bottom = 76.dp)
                 ) {
-                    illust.pages.mapIndexed { i, page ->
-                        Box {
-                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
+                    illust.pages.mapIndexed { i, page ->
+                        var size: IntSize by remember { mutableStateOf(IntSize(0, 0)) }
+                        var r18Overlay by remember {
+                            mutableStateOf(illust.r18 && Prefs.APPEARANCE_BLUR_R18.get() == "true")
+                        }
+
+                        Box {
                             var imgMod = Modifier.fillMaxWidth()
 
-                            if (loading)
+                            if (loading) {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                                 imgMod = imgMod.aspectRatio(1f)
+                            }
+
+                            if (r18Overlay)
+                                imgMod = imgMod.blur(32.dp)
 
                             AsyncImage(
                                 pixivImage(page.image_urls.large),
                                 contentDescription = illust.caption,
                                 contentScale = ContentScale.FillWidth,
-                                modifier = imgMod,
+                                modifier = imgMod.onSizeChanged { size = it },
                                 onSuccess = { loading = false }
                             )
+
+                            var overlayMod = Modifier
+                                .background(MaterialTheme.colors.background.copy(0.5f))
+
+                            if (size.height > 0)
+                                overlayMod = overlayMod.aspectRatio(
+                                    size.width / size.height.toFloat()
+                                )
+
+                            if (r18Overlay)
+                                Box(modifier = overlayMod.clickable { r18Overlay = false }) {
+                                    Box(modifier = Modifier.align(Alignment.Center)) {
+                                        Placeholder(Icons.Default._18UpRating)
+                                    }
+                                }
 
                             Box(
                                 modifier = Modifier
@@ -323,6 +354,8 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                                             .padding(top = 1.dp),
                                     )
                                 }
+
+
                         }
                     }
 

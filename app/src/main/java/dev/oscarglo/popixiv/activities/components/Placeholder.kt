@@ -13,16 +13,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Placeholder(icon: ImageVector, label: String) {
+fun Placeholder(icon: ImageVector, label: String? = null) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
             icon,
-            contentDescription = "no result",
+            contentDescription = label,
             modifier = Modifier.size(64.dp)
         )
-        Text(label, fontSize = 20.sp)
+        if (label != null) Text(label, fontSize = 20.sp)
     }
 }
