@@ -21,17 +21,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.oscarglo.popixiv.activities.components.TitleDialog
-import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.ui.theme.switchColors
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 
 @Composable
-fun BookmarkDialog(illustId: Long, onClose: () -> Unit = {}) {
+fun RestrictDialog(
+    title: String,
+    onAdd: suspend (restrict: String) -> Unit,
+    onDelete: suspend () -> Unit,
+    onClose: () -> Unit = {}
+) {
     var loading by remember { mutableStateOf(false) }
     var private by remember { mutableStateOf(false) }
 
-    TitleDialog("Edit bookmark", onClose) {
+    TitleDialog(title, onClose) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -57,10 +61,7 @@ fun BookmarkDialog(illustId: Long, onClose: () -> Unit = {}) {
                     loading = true
                     try {
                         runBlocking {
-                            PixivApi.instance.addBookmark(
-                                illustId,
-                                restrict = if (private) "private" else "public"
-                            )
+                            onAdd(if (private) "private" else "public")
                             onClose()
                         }
                     } catch (e: HttpException) {
@@ -77,7 +78,7 @@ fun BookmarkDialog(illustId: Long, onClose: () -> Unit = {}) {
                         modifier = Modifier.size(24.dp)
                     )
                 else
-                    Text("Save")
+                    Text("Add")
             }
 
             Button(
@@ -86,7 +87,7 @@ fun BookmarkDialog(illustId: Long, onClose: () -> Unit = {}) {
                     loading = true
                     try {
                         runBlocking {
-                            PixivApi.instance.deleteBookmark(illustId)
+                            onDelete()
                             onClose()
                         }
                     } catch (e: HttpException) {
@@ -104,7 +105,7 @@ fun BookmarkDialog(illustId: Long, onClose: () -> Unit = {}) {
                         modifier = Modifier.size(24.dp)
                     )
                 else
-                    Text("Remove")
+                    Text("Delete")
             }
         }
     }

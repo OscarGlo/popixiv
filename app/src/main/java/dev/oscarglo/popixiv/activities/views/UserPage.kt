@@ -1,11 +1,12 @@
 package dev.oscarglo.popixiv.activities.views
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,9 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -38,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import dev.oscarglo.popixiv.activities.AppViewModel
+import dev.oscarglo.popixiv.activities.components.dialog.RestrictDialog
 import dev.oscarglo.popixiv.activities.components.illust.PreviewGrid
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.api.PixivApi
@@ -55,6 +55,7 @@ import dev.oscarglo.popixiv.util.pixivImage
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserPage(
     navController: NavController,
@@ -84,6 +85,15 @@ fun UserPage(
                 }
             }.start()
     }
+
+    var followDialogOpen by remember { mutableStateOf(false) }
+    if (followDialogOpen)
+        RestrictDialog(
+            title = "Edit follow",
+            onAdd = { PixivApi.instance.addFollow(user!!.id, it) },
+            onDelete = { PixivApi.instance.deleteFollow(user!!.id) },
+            onClose = { followDialogOpen = false }
+        )
 
     fun handleBack() {
         fetcherViewModel.pop()
@@ -146,48 +156,56 @@ fun UserPage(
                     }
 
                     if (user != null && appUser != null && user!!.id != appUser!!.id)
-                        Button(
-                            onClick = {
-                                if (!loadingFollow)
-                                    Thread {
-                                        runBlocking {
-                                            loadingFollow = true
-                                            try {
-                                                if (followed) PixivApi.instance.deleteFollow(user!!.id)
-                                                else PixivApi.instance.addFollow(user!!.id)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(
+                                    if (followed) MaterialTheme.colors.primary
+                                    else MaterialTheme.colors.onSurface.copy(0.15f)
+                                )
+                                .combinedClickable(
+                                    onClick = {
+                                        if (!loadingFollow)
+                                            Thread {
+                                                runBlocking {
+                                                    loadingFollow = true
+                                                    try {
+                                                        if (followed) PixivApi.instance.deleteFollow(
+                                                            user!!.id
+                                                        )
+                                                        else PixivApi.instance.addFollow(user!!.id)
 
-                                                followed = !followed
-                                            } catch (e: HttpException) {
-                                                e.printStackTrace()
-                                            }
-                                            loadingFollow = false
-                                        }
-                                    }.start()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = if (followed) MaterialTheme.colors.primary else MaterialTheme.colors.background,
-                                contentColor = if (followed) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onBackground,
-                            ),
-                            contentPadding = PaddingValues(12.dp, 8.dp)
+                                                        followed = !followed
+                                                    } catch (e: HttpException) {
+                                                        e.printStackTrace()
+                                                    }
+                                                    loadingFollow = false
+                                                }
+                                            }.start()
+                                    },
+                                    onLongClick = { followDialogOpen = true }
+                                )
+                                .padding(12.dp, 8.dp)
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                if (loadingFollow)
-                                    CircularProgressIndicator(
-                                        strokeWidth = 3.dp,
-                                        color = Color.White,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                else
-                                    Icon(
-                                        if (followed) Icons.Default.Person else Icons.Default.PersonAdd,
-                                        contentDescription = if (followed) "add" else "remove",
-                                    )
+                            val color =
+                                if (followed) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface
 
-                                Text(if (followed) "Following" else "Follow")
-                            }
+                            if (loadingFollow)
+                                CircularProgressIndicator(
+                                    strokeWidth = 3.dp,
+                                    color = color,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            else
+                                Icon(
+                                    if (followed) Icons.Default.Person else Icons.Default.PersonAdd,
+                                    contentDescription = if (followed) "add" else "remove",
+                                    tint = color,
+                                )
+
+                            Text(if (followed) "Following" else "Follow", color = color)
                         }
                 }
 
