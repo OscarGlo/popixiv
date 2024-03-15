@@ -1,4 +1,4 @@
-package dev.oscarglo.popixiv.activities.components
+package dev.oscarglo.popixiv.activities.components.illust
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import dev.oscarglo.popixiv.activities.components.dialog.BookmarkDialog
 import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.api.ImageUrls
 import dev.oscarglo.popixiv.api.PixivApi

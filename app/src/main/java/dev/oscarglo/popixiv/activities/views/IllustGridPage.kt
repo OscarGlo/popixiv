@@ -21,8 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import dev.oscarglo.popixiv.activities.components.IllustGrid
 import dev.oscarglo.popixiv.activities.components.Select
+import dev.oscarglo.popixiv.activities.components.illust.IllustGrid
 import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.FollowMeta

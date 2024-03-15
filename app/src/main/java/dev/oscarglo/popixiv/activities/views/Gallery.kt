@@ -57,11 +57,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import dev.oscarglo.popixiv.activities.components.BookmarkDialog
 import dev.oscarglo.popixiv.activities.components.HtmlText
 import dev.oscarglo.popixiv.activities.components.SaveToast
 import dev.oscarglo.popixiv.activities.components.SaveViewModel
 import dev.oscarglo.popixiv.activities.components.TagChip
+import dev.oscarglo.popixiv.activities.components.dialog.BookmarkDialog
 import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher

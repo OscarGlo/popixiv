@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import dev.oscarglo.popixiv.activities.AppViewModel
-import dev.oscarglo.popixiv.activities.components.PreviewGrid
+import dev.oscarglo.popixiv.activities.components.illust.PreviewGrid
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.api.User

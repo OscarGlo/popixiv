@@ -1,4 +1,4 @@
-package dev.oscarglo.popixiv.activities.components
+package dev.oscarglo.popixiv.activities.components.dialog
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import dev.oscarglo.popixiv.activities.components.TitleDialog
 import dev.oscarglo.popixiv.api.PixivApi
 import dev.oscarglo.popixiv.ui.theme.switchColors
 import kotlinx.coroutines.runBlocking

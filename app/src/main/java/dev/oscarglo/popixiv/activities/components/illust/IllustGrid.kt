@@ -1,4 +1,4 @@
-package dev.oscarglo.popixiv.activities.components
+package dev.oscarglo.popixiv.activities.components.illust
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +33,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import dev.oscarglo.popixiv.activities.LoginActivity
+import dev.oscarglo.popixiv.activities.components.Placeholder
+import dev.oscarglo.popixiv.activities.components.dialog.SearchFilters
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.util.Prefs

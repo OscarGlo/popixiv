@@ -1,4 +1,4 @@
-package dev.oscarglo.popixiv.activities.components
+package dev.oscarglo.popixiv.activities.components.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import dev.oscarglo.popixiv.activities.components.Select
+import dev.oscarglo.popixiv.activities.components.TitleDialog
 
 val sortLabels = mapOf(
     "date_desc" to "Date (new)",

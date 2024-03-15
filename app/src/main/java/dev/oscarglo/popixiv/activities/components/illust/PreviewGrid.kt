@@ -1,4 +1,4 @@
-package dev.oscarglo.popixiv.activities.components
+package dev.oscarglo.popixiv.activities.components.illust
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

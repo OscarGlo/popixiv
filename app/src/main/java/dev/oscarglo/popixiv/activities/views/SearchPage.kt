@@ -56,12 +56,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import dev.oscarglo.popixiv.activities.components.IllustGrid
 import dev.oscarglo.popixiv.activities.components.Placeholder
-import dev.oscarglo.popixiv.activities.components.SearchFilters
-import dev.oscarglo.popixiv.activities.components.SearchFiltersDialog
 import dev.oscarglo.popixiv.activities.components.TagChip
-import dev.oscarglo.popixiv.activities.components.searchFiltersSaver
+import dev.oscarglo.popixiv.activities.components.dialog.SearchFilters
+import dev.oscarglo.popixiv.activities.components.dialog.SearchFiltersDialog
+import dev.oscarglo.popixiv.activities.components.dialog.searchFiltersSaver
+import dev.oscarglo.popixiv.activities.components.illust.IllustGrid
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
 import dev.oscarglo.popixiv.activities.viewModels.SearchMeta
