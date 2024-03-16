@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -19,11 +20,14 @@ import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
 import dev.oscarglo.popixiv.activities.viewModels.SearchMeta
 import dev.oscarglo.popixiv.api.Tag
+import dev.oscarglo.popixiv.util.Prefs
 import dev.oscarglo.popixiv.util.globalViewModel
 
 @Composable
 fun TagChip(tag: Tag, modifier: Modifier = Modifier, navController: NavController? = null) {
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
+
+    val mutedTags by Prefs.MUTED_TAGS.listState()
 
     var mod = modifier
     if (navController != null)
@@ -44,8 +48,11 @@ fun TagChip(tag: Tag, modifier: Modifier = Modifier, navController: NavControlle
         modifier = mod
             .clip(CircleShape)
             .background(
-                if (tag.name == "R-18") MaterialTheme.colors.secondary
-                else MaterialTheme.colors.primary
+                when {
+                    mutedTags.contains(tag.name) -> MaterialTheme.colors.onBackground.copy(0.2f)
+                    tag.name == "R-18" -> MaterialTheme.colors.secondary
+                    else -> MaterialTheme.colors.primary
+                }
             )
             .padding(horizontal = 8.dp),
     ) {

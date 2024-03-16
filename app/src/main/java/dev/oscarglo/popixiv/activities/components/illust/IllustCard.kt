@@ -59,6 +59,8 @@ fun IllustCard(
 
     val multi by Prefs.APPEARANCE_CARD_MULTI.booleanState()
     val blurR18 by Prefs.APPEARANCE_BLUR_R18.booleanState()
+    val mutedTags by Prefs.MUTED_TAGS.listState()
+    val mutedUsers by Prefs.MUTED_USERS.listState()
 
     @Composable
     fun IllustPreview(
@@ -68,7 +70,14 @@ fun IllustCard(
 
         var imgMod = modifier.fillMaxWidth()
 
-        if (blurR18 && illust.r18)
+        if (blurR18 && illust.r18 ||
+            illust.tags.any { tag ->
+                mutedTags.any {
+                    it.split("–")[0] == tag.name
+                }
+            } ||
+            mutedUsers.contains(illust.user.account)
+        )
             imgMod = imgMod.blur(16.dp)
 
         if (loading)

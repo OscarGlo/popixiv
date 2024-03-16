@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled._18UpRating
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -174,6 +175,9 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
     val scrollState = rememberScrollState()
     val savingPages by saveViewModel.saving.collectAsState()
 
+    val mutedTags by Prefs.MUTED_TAGS.listState()
+    val mutedUsers by Prefs.MUTED_USERS.listState()
+
     var loading by rememberSaveable { mutableStateOf(true) }
 
     var bookmarked by rememberSaveable { mutableStateOf(illust.is_bookmarked) }
@@ -270,6 +274,16 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
 
                     illust.pages.mapIndexed { i, page ->
                         var size: IntSize by remember { mutableStateOf(IntSize(0, 0)) }
+
+                        var mutedOverlay by remember {
+                            mutableStateOf(
+                                illust.tags.any { tag ->
+                                    mutedTags.any {
+                                        it.split("–")[0] == tag.name
+                                    }
+                                } || mutedUsers.contains(illust.user.account)
+                            )
+                        }
                         var r18Overlay by remember {
                             mutableStateOf(illust.r18 && Prefs.APPEARANCE_BLUR_R18.get() == "true")
                         }
@@ -282,7 +296,7 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                                 imgMod = imgMod.aspectRatio(1f)
                             }
 
-                            if (r18Overlay)
+                            if (mutedOverlay || r18Overlay)
                                 imgMod = imgMod.blur(32.dp)
 
                             AsyncImage(
@@ -301,10 +315,16 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                                     size.width / size.height.toFloat()
                                 )
 
-                            if (r18Overlay)
-                                Box(modifier = overlayMod.clickable { r18Overlay = false }) {
+                            if (mutedOverlay || r18Overlay)
+                                Box(modifier = overlayMod.clickable {
+                                    r18Overlay = false
+                                    mutedOverlay = false
+                                }) {
                                     Box(modifier = Modifier.align(Alignment.Center)) {
-                                        Placeholder(Icons.Default._18UpRating)
+                                        when {
+                                            mutedOverlay -> Placeholder(Icons.Default.VisibilityOff)
+                                            r18Overlay -> Placeholder(Icons.Default._18UpRating)
+                                        }
                                     }
                                 }
 
