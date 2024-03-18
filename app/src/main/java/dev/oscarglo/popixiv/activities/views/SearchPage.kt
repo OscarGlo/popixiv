@@ -132,12 +132,12 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
     if (showFilterDialog)
         SearchFiltersDialog(filters) {
             if (it != null) {
-                if (it.sort != filters.sort || it.duration != filters.duration)
-                    fetcherViewModel.updateLast("search") {
-                        (this as IllustFetcher<SearchMeta>)
-                            .reset()
-                            .copy(meta = SearchMeta(meta.query, it.sort, it.duration))
-                    }
+                fetcherViewModel.updateLast("search") {
+                    var fetcher = this as IllustFetcher<SearchMeta>
+                    if (it.sort != filters.sort || it.duration != filters.duration)
+                        fetcher = fetcher.reset()
+                    fetcher.copy(meta = SearchMeta(meta.query, it))
+                }
 
                 filters = it
             }

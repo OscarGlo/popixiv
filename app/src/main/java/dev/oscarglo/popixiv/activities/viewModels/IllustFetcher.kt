@@ -1,6 +1,7 @@
 package dev.oscarglo.popixiv.activities.viewModels
 
 import android.net.Uri
+import dev.oscarglo.popixiv.activities.components.dialog.SearchFilters
 import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.api.PixivApi
 
@@ -15,8 +16,7 @@ class UserMeta(val userId: Long? = null, val offset: Int = 0)
 
 class SearchMeta(
     val query: String,
-    val sort: String = "date_desc",
-    val duration: String? = null,
+    val filters: SearchFilters = SearchFilters(),
     val offset: Int = 0
 )
 
@@ -146,14 +146,14 @@ open class IllustFetcher<T>(
                     return@IllustFetcher this.copy(done = true)
 
                 val data =
-                    if (this.meta.sort == "popular_desc") PixivApi.instance.getSearchIllustPreview(
+                    if (this.meta.filters.sort == "popular_desc") PixivApi.instance.getSearchIllustPreview(
                         this.meta.query,
-                        this.meta.sort,
-                        duration = this.meta.duration
+                        this.meta.filters.sort,
+                        duration = this.meta.filters.duration
                     )
                     else PixivApi.instance.getSearchIllusts(
                         this.meta.query,
-                        this.meta.sort,
+                        this.meta.filters.sort,
                         offset = this.meta.offset
                     )
 
@@ -163,8 +163,7 @@ open class IllustFetcher<T>(
                     this.copy(
                         meta = SearchMeta(
                             this.meta.query,
-                            this.meta.sort,
-                            this.meta.duration,
+                            this.meta.filters,
                             nextOffset ?: (this.meta.offset + data.illusts.size)
                         ),
                         illusts = mergeIllusts(this.illusts, data.illusts),
@@ -173,7 +172,7 @@ open class IllustFetcher<T>(
             },
             {
                 this.copy(
-                    meta = SearchMeta(this.meta.query, this.meta.sort, this.meta.duration),
+                    meta = SearchMeta(this.meta.query, this.meta.filters),
                     illusts = emptyList(),
                     done = false,
                 )

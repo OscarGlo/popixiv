@@ -62,9 +62,8 @@ fun IllustGrid(
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
     val fetcher = fetcherViewModel.get(fetcherKey)
 
-    val illustGroups = fetcher.illusts
+    val illustGroups = filters.filter(fetcher.illusts)
         .mapIndexed { i, illust -> i to illust }
-        .filter { it.second.total_bookmarks >= (filters.minBookmarks ?: 0) }
         .groupBy { displayShortDateFormat.format(pixivDateFormat.parse(it.second.create_date)) }
     var firstLoad by rememberSaveable { mutableStateOf(true) }
 

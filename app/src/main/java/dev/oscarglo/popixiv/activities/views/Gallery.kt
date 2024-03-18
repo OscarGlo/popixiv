@@ -72,6 +72,7 @@ import dev.oscarglo.popixiv.activities.components.dialog.BookmarkDialog
 import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
+import dev.oscarglo.popixiv.activities.viewModels.SearchMeta
 import dev.oscarglo.popixiv.activities.viewModels.UserMeta
 import dev.oscarglo.popixiv.api.Illust
 import dev.oscarglo.popixiv.api.IllustPage
@@ -136,9 +137,11 @@ fun downloadPage(context: Context, saveViewModel: SaveViewModel, page: IllustPag
 @Composable
 fun Gallery(fetcherKey: String, navController: NavController, popBack: Boolean = false) {
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
-    val fetcher = fetcherViewModel.get(fetcherKey)
+    val fetcher = fetcherViewModel.get(fetcherKey) as IllustFetcher<SearchMeta>
 
-    val pagerState = rememberPagerState(fetcher.current, 0f) { fetcher.illusts.size }
+    val filteredIllusts = fetcher.meta.filters.filter(fetcher.illusts)
+
+    val pagerState = rememberPagerState(fetcher.current, 0f) { filteredIllusts.size }
 
     fun onBack() {
         if (popBack)
@@ -154,7 +157,7 @@ fun Gallery(fetcherKey: String, navController: NavController, popBack: Boolean =
                         fetcherViewModel.fetch(fetcherKey)
                     }
 
-                IllustView(navController, fetcher.illusts[i], ::onBack)
+                IllustView(navController, filteredIllusts[i], ::onBack)
             }
 
             SaveToast(modifier = Modifier.align(Alignment.BottomCenter))

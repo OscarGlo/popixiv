@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.oscarglo.popixiv.activities.components.Select
 import dev.oscarglo.popixiv.activities.components.TitleDialog
+import dev.oscarglo.popixiv.api.Illust
 
 val sortLabels = mapOf(
     "date_desc" to "Date (new)",
@@ -40,7 +41,9 @@ data class SearchFilters(
     val sort: String = "date_desc",
     val duration: String? = null,
     val minBookmarks: Int? = null,
-)
+) {
+    fun filter(illusts: List<Illust>) = illusts.filter { it.total_bookmarks >= (minBookmarks ?: 0) }
+}
 
 val searchFiltersSaver = Saver<SearchFilters, String>(
     { it.sort + "–" + it.duration + "–" + it.minBookmarks.toString() },
