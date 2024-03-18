@@ -37,7 +37,6 @@ fun PreviewGrid(navController: NavController, fetcherKey: String, label: String)
     val cardSize by Prefs.APPEARANCE_CARD_SIZE.intState()
 
     LaunchedEffect(fetcher) {
-        println("$fetcherKey: ${fetcher.illusts.size}")
         if (fetcher.illusts.isEmpty() && !fetcher.done)
             fetcherViewModel.fetch(fetcherKey)
     }

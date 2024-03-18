@@ -27,8 +27,6 @@ fun TagDialog(tag: Tag, onClose: () -> Unit = {}) {
     var highlightTags by Prefs.HIGHLIGHT_TAGS.listState()
     var mutedTags by Prefs.MUTED_TAGS.listState()
 
-    println(Prefs.MUTED_TAGS.get())
-
     val highlighted = highlightTags.any { tag.match(it) }
     val muted = mutedTags.any { tag.match(it) }
 
