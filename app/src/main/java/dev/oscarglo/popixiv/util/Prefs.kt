@@ -54,6 +54,10 @@ enum class Prefs(private val default: String = "") {
         val property = rememberSaveable { mutableStateOf(parse(value)) }
         var typedValue by property
 
+        prefs.registerOnSharedPreferenceChangeListener { _, key ->
+            if (key == name) typedValue = parse(get())
+        }
+
         LaunchedEffect(value) { typedValue = parse(value) }
         LaunchedEffect(typedValue) { value = serialize(typedValue) }
 
@@ -68,7 +72,7 @@ enum class Prefs(private val default: String = "") {
 
     @Composable
     fun listState() =
-        parsedState({ it.joinToString("—") }, { it.split("—").filter { it.isNotBlank() } })
+        parsedState({ it.joinToString("—") }, { it.split("—").filter { tag -> tag.isNotBlank() } })
 
     companion object {
         lateinit var prefs: SharedPreferences

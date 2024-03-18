@@ -71,12 +71,8 @@ fun IllustCard(
         var imgMod = modifier.fillMaxWidth()
 
         if (blurR18 && illust.r18 ||
-            illust.tags.any { tag ->
-                mutedTags.any {
-                    it.split("–")[0] == tag.name
-                }
-            } ||
-            mutedUsers.contains(illust.user.account)
+            illust.tags.any { tag -> mutedTags.any { tag.match(it) } }
+            || mutedUsers.contains(illust.user.account)
         )
             imgMod = imgMod.blur(16.dp)
 

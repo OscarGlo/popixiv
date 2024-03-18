@@ -63,7 +63,12 @@ data class Illust(
 data class Tag(
     val name: String,
     val translated_name: String? = null
-)
+) {
+    override fun toString() = if (translated_name != null) "$name–$translated_name" else name
+
+    fun match(s: String) = s.split("–")[0] == name
+    fun match(t: Tag) = t.name == name
+}
 
 data class User(
     val id: Long,
