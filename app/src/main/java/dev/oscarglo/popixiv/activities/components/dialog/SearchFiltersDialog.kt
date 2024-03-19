@@ -34,7 +34,7 @@ val durationLabels = mapOf(
     "within_last_month" to "Month",
     "within_half_year" to "6 months",
     "within_year" to "Year",
-    null to "All time"
+    "null" to "All time"
 )
 
 data class SearchFilters(
@@ -92,7 +92,7 @@ fun SearchFiltersDialog(filters: SearchFilters, onClose: (filters: SearchFilters
                 ),
                 value = state.duration,
                 onChange = { state = state.copy(duration = it) },
-                render = { Text(durationLabels[it]!!) },
+                render = { Text(durationLabels[it ?: "null"]!!) },
                 modifier = Modifier.width(144.dp)
             )
         }

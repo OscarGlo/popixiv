@@ -146,16 +146,18 @@ open class IllustFetcher<T>(
                     return@IllustFetcher this.copy(done = true)
 
                 val data =
-                    if (this.meta.filters.sort == "popular_desc") PixivApi.instance.getSearchIllustPreview(
-                        this.meta.query,
-                        this.meta.filters.sort,
-                        duration = this.meta.filters.duration
-                    )
-                    else PixivApi.instance.getSearchIllusts(
-                        this.meta.query,
-                        this.meta.filters.sort,
-                        offset = this.meta.offset
-                    )
+                    if (this.meta.filters.sort == "popular_desc" && !this.meta.query.contains(" "))
+                        PixivApi.instance.getSearchIllustPreview(
+                            this.meta.query,
+                            this.meta.filters.sort,
+                            duration = this.meta.filters.duration
+                        )
+                    else
+                        PixivApi.instance.getSearchIllusts(
+                            this.meta.query,
+                            this.meta.filters.sort,
+                            offset = this.meta.offset
+                        )
 
                 return@IllustFetcher if (data.next_url != null) {
                     val nextOffset = Uri.parse(data.next_url).getQueryParameter("offset")?.toInt()

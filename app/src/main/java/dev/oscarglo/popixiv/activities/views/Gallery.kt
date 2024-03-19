@@ -137,11 +137,13 @@ fun downloadPage(context: Context, saveViewModel: SaveViewModel, page: IllustPag
 @Composable
 fun Gallery(fetcherKey: String, navController: NavController, popBack: Boolean = false) {
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
-    val fetcher = fetcherViewModel.get(fetcherKey) as IllustFetcher<SearchMeta>
+    val fetcher = fetcherViewModel.get(fetcherKey)
 
-    val filteredIllusts = fetcher.meta.filters.filter(fetcher.illusts)
+    val illusts =
+        if (fetcher.meta is SearchMeta) fetcher.meta.filters.filter(fetcher.illusts)
+        else fetcher.illusts
 
-    val pagerState = rememberPagerState(fetcher.current, 0f) { filteredIllusts.size }
+    val pagerState = rememberPagerState(fetcher.current, 0f) { illusts.size }
 
     fun onBack() {
         if (popBack)
@@ -157,7 +159,7 @@ fun Gallery(fetcherKey: String, navController: NavController, popBack: Boolean =
                         fetcherViewModel.fetch(fetcherKey)
                     }
 
-                IllustView(navController, filteredIllusts[i], ::onBack)
+                IllustView(navController, illusts[i], ::onBack)
             }
 
             SaveToast(modifier = Modifier.align(Alignment.BottomCenter))
