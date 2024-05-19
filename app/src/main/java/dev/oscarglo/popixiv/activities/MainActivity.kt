@@ -48,6 +48,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.oscarglo.popixiv.activities.components.SaveToast
+import dev.oscarglo.popixiv.activities.components.dialog.SearchFilters
 import dev.oscarglo.popixiv.activities.viewModels.BookmarkMeta
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
@@ -61,6 +62,7 @@ import dev.oscarglo.popixiv.activities.views.SettingTabPage
 import dev.oscarglo.popixiv.activities.views.SettingsPage
 import dev.oscarglo.popixiv.activities.views.UserPage
 import dev.oscarglo.popixiv.api.AuthApi
+import dev.oscarglo.popixiv.api.Tag
 import dev.oscarglo.popixiv.api.User
 import dev.oscarglo.popixiv.ui.theme.AppTheme
 import dev.oscarglo.popixiv.util.Prefs
@@ -155,7 +157,17 @@ fun AppRouter(target: Uri? = null) {
 
                 "tags" -> {
                     fetcherViewModel.push(
-                        mapOf("search" to IllustFetcher.search(SearchMeta(parts[1])))
+                        mapOf(
+                            "search" to IllustFetcher.search(
+                                SearchMeta(
+                                    SearchFilters(
+                                        tags = parts[1]
+                                            .split(" ")
+                                            .map { Tag(it) }
+                                    )
+                                )
+                            )
+                        )
                     )
                     navController.navigate("search/${parts[1]}")
                 }
@@ -313,6 +325,6 @@ fun HomeLayout(navController: NavController) {
                 pagerState.animateScrollToPage(initialPage, 0f)
             }
         else
-            activity.moveTaskToBack(false);
+            activity.moveTaskToBack(false)
     }
 }

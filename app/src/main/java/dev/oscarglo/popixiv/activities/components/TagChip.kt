@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import dev.oscarglo.popixiv.activities.components.dialog.SearchFilters
 import dev.oscarglo.popixiv.activities.components.dialog.TagDialog
 import dev.oscarglo.popixiv.activities.viewModels.FetcherViewModel
 import dev.oscarglo.popixiv.activities.viewModels.IllustFetcher
@@ -47,7 +48,7 @@ fun TagChip(tag: Tag, modifier: Modifier = Modifier, navController: NavControlle
             onClick = {
                 fetcherViewModel.push(
                     mapOf(
-                        "search" to IllustFetcher.search(SearchMeta(tag.name))
+                        "search" to IllustFetcher.search(SearchMeta(SearchFilters(listOf(tag))))
                     )
                 )
                 navController.navigate("search/${tag}")
@@ -71,6 +72,9 @@ fun TagChip(tag: Tag, modifier: Modifier = Modifier, navController: NavControlle
             )
             .padding(horizontal = 8.dp),
     ) {
+        if (tag.negative)
+            Text("-")
+
         Text(
             text = tag.name,
             fontSize = 15.sp,

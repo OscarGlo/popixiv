@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import dev.oscarglo.popixiv.activities.components.Select
 import dev.oscarglo.popixiv.activities.components.TitleDialog
 import dev.oscarglo.popixiv.api.Illust
+import dev.oscarglo.popixiv.api.Tag
 
 val sortLabels = mapOf(
     "date_desc" to "Date (new)",
@@ -38,18 +39,30 @@ val durationLabels = mapOf(
 )
 
 data class SearchFilters(
+    val tags: List<Tag> = emptyList(),
     val sort: String = "date_desc",
     val duration: String? = null,
     val minBookmarks: Int? = null,
 ) {
-    fun filter(illusts: List<Illust>) = illusts.filter { it.total_bookmarks >= (minBookmarks ?: 0) }
+    fun filter(illusts: List<Illust>): List<Illust> {
+        val negative = tags.filter { it.negative }
+        return illusts.filter {
+            it.total_bookmarks >= (minBookmarks ?: 0) &&
+                    it.tags.none { t -> negative.any(t::match) }
+        }
+    }
 }
 
 val searchFiltersSaver = Saver<SearchFilters, String>(
-    { it.sort + "–" + it.duration + "–" + it.minBookmarks.toString() },
+    { it.tags.joinToString("—") + ";" + it.sort + ";" + it.duration + ";" + it.minBookmarks.toString() },
     {
-        val parts = it.split("–")
-        SearchFilters(parts[0], parts[1], parts[2].toIntOrNull())
+        val parts = it.split(";")
+        SearchFilters(
+            parts[0].split("—").map(Tag::parse),
+            parts[1],
+            parts[2],
+            parts[3].toIntOrNull()
+        )
     }
 )
 

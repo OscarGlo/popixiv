@@ -62,9 +62,16 @@ data class Illust(
 
 data class Tag(
     val name: String,
-    val translated_name: String? = null
+    val translated_name: String? = null,
+    val negative: Boolean = false
 ) {
-    override fun toString() = if (translated_name != null) "$name–$translated_name" else name
+    companion object {
+        fun parse(s: String) =
+            s.trimStart('-').split("–").let { Tag(it[0], it.getOrNull(1), s.startsWith("-")) }
+    }
+
+    override fun toString() =
+        (if (negative) "-" else "") + (if (translated_name != null) "$name–$translated_name" else name)
 
     fun match(s: String) = s.split("–")[0] == name
     fun match(t: Tag) = t.name == name

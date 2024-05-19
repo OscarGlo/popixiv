@@ -20,7 +20,7 @@ class FetcherViewModel : ViewModel() {
                 "follow" to IllustFetcher.follow(),
                 "bookmark" to IllustFetcher.bookmark(BookmarkMeta("public")),
                 "user" to IllustFetcher.user(UserMeta()),
-                "search" to IllustFetcher.search(SearchMeta("", offset = 0))
+                "search" to IllustFetcher.search(SearchMeta(offset = 0))
             )
         )
     )

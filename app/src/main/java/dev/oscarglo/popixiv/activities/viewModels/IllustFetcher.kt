@@ -15,7 +15,6 @@ class BookmarkMeta(restrict: String, val userId: Long? = null, val maxId: Long? 
 class UserMeta(val userId: Long? = null, val offset: Int = 0)
 
 class SearchMeta(
-    val query: String,
     val filters: SearchFilters = SearchFilters(),
     val offset: Int = 0
 )
@@ -142,19 +141,22 @@ open class IllustFetcher<T>(
         fun search(meta: SearchMeta) = IllustFetcher(
             meta,
             {
-                if (this.meta.query.isBlank())
+                val tags = this.meta.filters.tags.filter { !it.negative }
+                if (tags.isEmpty())
                     return@IllustFetcher this.copy(done = true)
 
+                val query = tags.filter { !it.negative }.joinToString(" ") { it.name }
+
                 val data =
-                    if (this.meta.filters.sort == "popular_desc" && !this.meta.query.contains(" "))
+                    if (this.meta.filters.sort == "popular_desc" && tags.size == 1)
                         PixivApi.instance.getSearchIllustPreview(
-                            this.meta.query,
+                            query,
                             this.meta.filters.sort,
                             duration = this.meta.filters.duration
                         )
                     else
                         PixivApi.instance.getSearchIllusts(
-                            this.meta.query,
+                            query,
                             this.meta.filters.sort,
                             offset = this.meta.offset
                         )
@@ -164,7 +166,6 @@ open class IllustFetcher<T>(
 
                     this.copy(
                         meta = SearchMeta(
-                            this.meta.query,
                             this.meta.filters,
                             nextOffset ?: (this.meta.offset + data.illusts.size)
                         ),
@@ -174,7 +175,7 @@ open class IllustFetcher<T>(
             },
             {
                 this.copy(
-                    meta = SearchMeta(this.meta.query, this.meta.filters),
+                    meta = SearchMeta(this.meta.filters),
                     illusts = emptyList(),
                     done = false,
                 )

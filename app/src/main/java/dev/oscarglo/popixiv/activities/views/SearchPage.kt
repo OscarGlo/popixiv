@@ -36,7 +36,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -83,20 +82,11 @@ class SearchViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             word.debounce(500).collectLatest {
-                autocomplete.value = PixivApi.instance.getSearchAutocomplete(it).tags
+                autocomplete.value = PixivApi.instance.getSearchAutocomplete(it.trimStart('-')).tags
             }
         }
     }
 }
-
-val tagSaver = Saver<List<Tag>, String>(
-    { tags -> tags.joinToString("—") },
-    { str ->
-        str.split("—")
-            .filter { it.isNotBlank() }
-            .map { part -> part.split("–").let { Tag(it[0], it.getOrNull(1)) } }
-    }
-)
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
@@ -105,7 +95,7 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
     val searchViewModel = viewModel<SearchViewModel>()
 
     val word by searchViewModel.word.collectAsState()
-    var tags by rememberSaveable(stateSaver = tagSaver) { mutableStateOf(emptyList()) }
+    var filters by rememberSaveable(stateSaver = searchFiltersSaver) { mutableStateOf(SearchFilters()) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -115,10 +105,10 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
     val showDropdown = focused && autocomplete.isNotEmpty()
 
     LaunchedEffect(query) {
-        if (query.isBlank() || tags.isNotEmpty())
+        if (query.isBlank() || filters.tags.isNotEmpty())
             return@LaunchedEffect
 
-        tagSaver.restore(query)?.let { tags = it }
+        filters = SearchFilters(tags = query.split(" ").map { Tag(it) })
     }
 
     fun handleBack() {
@@ -127,16 +117,15 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
     }
 
     var showFilterDialog by remember { mutableStateOf(false) }
-    var filters by rememberSaveable(stateSaver = searchFiltersSaver) { mutableStateOf(SearchFilters()) }
 
     if (showFilterDialog)
         SearchFiltersDialog(filters) {
             if (it != null) {
                 fetcherViewModel.updateLast("search") {
                     var fetcher = this as IllustFetcher<SearchMeta>
-                    if (it.sort != filters.sort || it.duration != filters.duration)
+                    if (it.tags != filters.tags || it.sort != filters.sort || it.duration != filters.duration)
                         fetcher = fetcher.reset()
-                    fetcher.copy(meta = SearchMeta(meta.query, it))
+                    fetcher.copy(meta = SearchMeta(it))
                 }
 
                 filters = it
@@ -174,11 +163,14 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
                                 .background(MaterialTheme.colors.onSurface.copy(alpha = 0.15f))
                                 .padding(12.dp, 4.dp)
                         ) {
-                            tags.mapIndexed { i, tag ->
+                            filters.tags.mapIndexed { i, tag ->
                                 TagChip(
                                     tag,
                                     modifier = Modifier
-                                        .clickable { tags = tags.filterIndexed { j, _ -> i != j } }
+                                        .clickable {
+                                            filters =
+                                                filters.copy(tags = filters.tags.filterIndexed { j, _ -> i != j })
+                                        }
                                         .align(Alignment.CenterVertically),
                                 )
                             }
@@ -191,12 +183,17 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(
                                     imeAction = if (word.isNotBlank()) ImeAction.Done
-                                    else if (tags.isNotEmpty()) ImeAction.Search
+                                    else if (filters.tags.isNotEmpty()) ImeAction.Search
                                     else ImeAction.None
                                 ),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
-                                        tags += Tag(word.trim())
+                                        filters = filters.copy(
+                                            tags = filters.tags + Tag(
+                                                word.trimStart('-').trim(),
+                                                negative = word.startsWith("-")
+                                            )
+                                        )
                                         searchViewModel.word.value = ""
                                     },
                                     onSearch = {
@@ -205,7 +202,7 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
                                                 .reset()
                                                 .copy(
                                                     meta = SearchMeta(
-                                                        tags.joinToString(" ") { it.name },
+                                                        filters = filters,
                                                         offset = 0
                                                     )
                                                 )
@@ -222,7 +219,7 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
 
                             IconButton(
                                 onClick = {
-                                    tags = emptyList()
+                                    filters = filters.copy(tags = emptyList())
                                     searchViewModel.word.value = ""
                                     searchViewModel.autocomplete.value = emptyList()
                                 },
@@ -245,7 +242,9 @@ fun SearchPage(navController: NavController, query: String = "", hasBackButton: 
                         ) {
                             autocomplete.map {
                                 DropdownMenuItem(onClick = {
-                                    tags += it
+                                    filters = filters.copy(
+                                        tags = filters.tags + it.copy(negative = word.startsWith("-"))
+                                    )
                                     searchViewModel.word.value = ""
                                     searchViewModel.autocomplete.value = emptyList()
                                 }) {
