@@ -35,7 +35,7 @@ data class Illust(
     val is_bookmarked: Boolean,
     val visible: Boolean,
     val is_muted: Boolean,
-    val url: String,
+    val url: String?,
     val image_urls: ImageUrls,
     val meta_single_page: MetaSinglePage,
     val meta_pages: List<IllustPage>,

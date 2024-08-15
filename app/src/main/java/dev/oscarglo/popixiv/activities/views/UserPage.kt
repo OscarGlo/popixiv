@@ -1,5 +1,6 @@
 package dev.oscarglo.popixiv.activities.views
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -17,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -25,8 +28,10 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,6 +69,8 @@ fun UserPage(
     user: User? = null,
     hasBackButton: Boolean = false
 ) {
+    val context = LocalContext.current
+
     val appViewModel = globalViewModel<AppViewModel>()
     val fetcherViewModel = globalViewModel<FetcherViewModel>()
 
@@ -71,6 +79,8 @@ fun UserPage(
 
     var followed by rememberSaveable { mutableStateOf(user?.is_followed ?: false) }
     var loadingFollow by rememberSaveable { mutableStateOf(false) }
+
+    var menuExpanded by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect("fetchUser") {
         if (user == null)
@@ -104,14 +114,53 @@ fun UserPage(
 
     Scaffold(topBar = {
         if (hasBackButton) {
-            TopAppBar(navigationIcon = {
-                IconButton(onClick = ::handleBack) {
-                    Icon(
-                        Icons.AutoMirrored.Default.ArrowBack,
-                        contentDescription = "back"
-                    )
+            TopAppBar {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconButton(onClick = ::handleBack) {
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "back"
+                        )
+                    }
+
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Image actions",
+                        )
+
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                        ) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    context.startActivity(Intent.createChooser(Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(
+                                            Intent.EXTRA_TEXT,
+                                            "https://www.pixiv.net/en/users/${user?.id}"
+                                        )
+                                        type = "text/plain"
+                                    }, null))
+                                },
+                                enabled = user != null
+                            ) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    Icon(
+                                        Icons.Default.Share,
+                                        contentDescription = "share link"
+                                    )
+                                    Text("Share link")
+                                }
+                            }
+                        }
+                    }
                 }
-            }, title = {})
+            }
         }
     }) { padding ->
         Box(
