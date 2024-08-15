@@ -15,9 +15,6 @@ enum class Prefs(private val default: String = "") {
     PIXIV_ACCESS_TOKEN,
     PIXIV_REFRESH_TOKEN,
     SAUCENAO_TOKEN,
-    HIGHLIGHT_TAGS(""),
-    MUTED_TAGS(""),
-    MUTED_USERS(""),
     APPEARANCE_THEME("system"),
     APPEARANCE_BLUR_R18("true"),
     APPEARANCE_GRID_STAGGER("false"),
@@ -46,10 +43,7 @@ enum class Prefs(private val default: String = "") {
     }
 
     @Composable
-    fun <T> parsedState(
-        serialize: (T) -> String = { it.toString() },
-        parse: (String) -> T
-    ): MutableState<T> {
+    fun <T> parsedState(serialize: (T) -> String = { it.toString() }, parse: (String) -> T): MutableState<T> {
         var value by state()
         val property = rememberSaveable { mutableStateOf(parse(value)) }
         var typedValue by property
@@ -65,10 +59,6 @@ enum class Prefs(private val default: String = "") {
 
     @Composable
     fun intState() = parsedState { it.toInt() }
-
-    @Composable
-    fun listState() =
-        parsedState({ it.joinToString("—") }, { it.split("—").filter { it.isNotBlank() } })
 
     companion object {
         lateinit var prefs: SharedPreferences
