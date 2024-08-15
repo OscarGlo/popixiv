@@ -19,12 +19,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenu
@@ -384,12 +386,13 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
                                         .padding(4.dp)
-                                        .clip(CircleShape)
+                                        .clip(RoundedCornerShape(12.dp))
                                         .background(Color.Black.copy(alpha = 0.6F))
-                                        .size(32.dp)
+                                        .height(24.dp)
+                                        .padding(8.dp, 0.dp)
                                 ) {
                                     Text(
-                                        (i + 1).toString(),
+                                        "${i + 1}/${illust.page_count}",
                                         color = Color.White,
                                         modifier = Modifier
                                             .align(Alignment.Center)
