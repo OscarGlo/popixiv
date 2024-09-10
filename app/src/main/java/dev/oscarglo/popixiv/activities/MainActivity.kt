@@ -136,24 +136,30 @@ fun AppRouter(target: Uri? = null) {
         }
     }
 
+    fun loadUserPage(id: String) {
+        fetcherViewModel.push(
+            mapOf(
+                "user" to IllustFetcher.user(UserMeta(id.toLong())),
+                "bookmark" to IllustFetcher.bookmark(
+                    BookmarkMeta("public", id.toLong())
+                )
+            )
+        )
+        navController.navigate("user/$id")
+    }
+
     LaunchedEffect("loadTarget") {
         if (target == null || target.path == null)
             return@LaunchedEffect
 
-        val parts = target.path!!.split("/").drop(1)
+        var parts = target.path!!.split("/").drop(1)
+        if (parts[0] == "en" || parts[0] == "jp")
+            parts = parts.drop(1)
+
         if (!handledTarget) {
             when (parts[0]) {
-                "users" -> {
-                    fetcherViewModel.push(
-                        mapOf(
-                            "user" to IllustFetcher.user(UserMeta(parts[1].toLong())),
-                            "bookmark" to IllustFetcher.bookmark(
-                                BookmarkMeta("public", parts[1].toLong())
-                            )
-                        )
-                    )
-                    navController.navigate("user/${parts[1]}")
-                }
+                "users" -> loadUserPage(parts[1])
+                "member.php" -> target.getQueryParameter("id")?.let { loadUserPage(it) }
 
                 "tags" -> {
                     fetcherViewModel.push(
