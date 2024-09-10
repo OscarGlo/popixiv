@@ -1,6 +1,5 @@
 package dev.oscarglo.popixiv.activities.views
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,17 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Slider
 import androidx.compose.material.Surface
 import androidx.compose.material.Switch
-import androidx.compose.material.Tab
-import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -28,16 +22,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DashboardCustomize
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled._18UpRating
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,12 +41,10 @@ import dev.oscarglo.popixiv.activities.components.Select
 import dev.oscarglo.popixiv.ui.theme.AppTheme
 import dev.oscarglo.popixiv.ui.theme.switchColors
 import dev.oscarglo.popixiv.util.Prefs
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class SettingTab(val icon: ImageVector, val content: @Composable () -> Unit)
 
-@OptIn(ExperimentalFoundationApi::class)
 val settingsTabs = mapOf(
     "Appearance" to SettingTab(Icons.Default.Visibility) {
         var theme by Prefs.APPEARANCE_THEME.state()
@@ -190,68 +178,6 @@ val settingsTabs = mapOf(
             Text(cardSize.toString(), modifier = Modifier.width(32.dp), textAlign = TextAlign.End)
         }
     },
-    "Content" to SettingTab(Icons.Default.Image) {
-        val coroutineScope = rememberCoroutineScope()
-
-        var currentTab by rememberSaveable { mutableIntStateOf(0) }
-        val pagerState = rememberPagerState(0, 0f) { 3 }
-
-        var highlightTags by Prefs.HIGHLIGHT_TAGS.listState()
-        var muteTags by Prefs.MUTED_TAGS.listState()
-        var muteUsers by Prefs.MUTED_USERS.listState()
-
-        TabRow(selectedTabIndex = currentTab) {
-            listOf("Highlight tags", "Mute tags", "Mute users").mapIndexed { i, tab ->
-                Tab(
-                    selected = currentTab == i,
-                    onClick = {
-                        currentTab = i
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(i, 0f)
-                        }
-                    },
-                ) {
-                    Text(tab, modifier = Modifier.padding(vertical = 16.dp))
-                }
-            }
-        }
-
-        HorizontalPager(pagerState) { page ->
-            Column(modifier = Modifier.fillMaxSize()) {
-                listOf(highlightTags, muteTags, muteUsers)[page].mapIndexed { i, tag ->
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        val parts = tag.split("–")
-                        Row {
-                            Text(parts[0])
-                            if (parts.size > 1)
-                                Text(
-                                    parts[1],
-                                    color = MaterialTheme.colors.onBackground.copy(0.7f),
-                                    modifier = Modifier.padding(start = 16.dp)
-                                )
-                        }
-
-                        IconButton(onClick = {
-                            when (page) {
-                                0 -> highlightTags = highlightTags.filterIndexed { j, _ -> i != j }
-                                1 -> muteTags = muteTags.filterIndexed { j, _ -> i != j }
-                                2 -> muteUsers = muteUsers.filterIndexed { j, _ -> i != j }
-                            }
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Remove")
-                        }
-                    }
-                }
-            }
-        }
-
-    },
     "Reverse search" to SettingTab(Icons.Default.ImageSearch) {
         var sauceNaoKey by rememberSaveable { mutableStateOf(Prefs.SAUCENAO_TOKEN.get()) }
 
@@ -266,7 +192,7 @@ val settingsTabs = mapOf(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    },
+    }
 )
 
 @Composable

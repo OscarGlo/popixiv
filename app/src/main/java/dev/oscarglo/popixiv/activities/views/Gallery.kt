@@ -3,6 +3,7 @@ package dev.oscarglo.popixiv.activities.views
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.provider.MediaStore
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -18,14 +19,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -38,8 +43,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled._18UpRating
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -180,15 +186,12 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
     val scrollState = rememberScrollState()
     val savingPages by saveViewModel.saving.collectAsState()
 
-    val mutedTags by Prefs.MUTED_TAGS.listState()
-    val mutedUsers by Prefs.MUTED_USERS.listState()
-
     var loading by rememberSaveable { mutableStateOf(true) }
 
     var bookmarked by rememberSaveable { mutableStateOf(illust.is_bookmarked) }
     var loadingBookmark by rememberSaveable { mutableStateOf(false) }
 
-    val allDownloaded = illust.pages.all { File(getImagesDir(), it.filename).exists() }
+    var menuExpanded by rememberSaveable { mutableStateOf(false) }
 
     var showBookmarkDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -254,14 +257,51 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                             }
                         }
 
-                        IconButton(onClick = {
-                            illust.pages.forEach { downloadPage(context, saveViewModel, it) }
-                        }) {
+                        IconButton(onClick = { menuExpanded = true }) {
                             Icon(
-                                if (allDownloaded) Icons.Default.DownloadDone
-                                else Icons.Default.Download,
-                                contentDescription = "download all"
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Image actions",
                             )
+
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false },
+                            ) {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        illust.pages.forEach { downloadPage(context, saveViewModel, it) }
+                                    },
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                        Icon(
+                                            Icons.Default.Download,
+                                            contentDescription = "save all"
+                                        )
+                                        Text("Save all")
+                                    }
+                                }
+
+                                DropdownMenuItem(
+                                    onClick = {
+                                        context.startActivity(Intent.createChooser(Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            putExtra(
+                                                Intent.EXTRA_TEXT,
+                                                illust.url ?: "https://www.pixiv.net/en/artworks/${illust.id}"
+                                            )
+                                            type = "text/plain"
+                                        }, null))
+                                    },
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                        Icon(
+                                            Icons.Default.Share,
+                                            contentDescription = "share link"
+                                        )
+                                        Text("Share link")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -298,7 +338,7 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                                 imgMod = imgMod.aspectRatio(1f)
                             }
 
-                            if (mutedOverlay || r18Overlay)
+                            if (r18Overlay)
                                 imgMod = imgMod.blur(32.dp)
 
                             AsyncImage(
@@ -317,16 +357,10 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                                     size.width / size.height.toFloat()
                                 )
 
-                            if (mutedOverlay || r18Overlay)
-                                Box(modifier = overlayMod.clickable {
-                                    r18Overlay = false
-                                    mutedOverlay = false
-                                }) {
+                            if (r18Overlay)
+                                Box(modifier = overlayMod.clickable { r18Overlay = false }) {
                                     Box(modifier = Modifier.align(Alignment.Center)) {
-                                        when {
-                                            mutedOverlay -> Placeholder(Icons.Default.VisibilityOff)
-                                            r18Overlay -> Placeholder(Icons.Default._18UpRating)
-                                        }
+                                        Placeholder(Icons.Default._18UpRating)
                                     }
                                 }
 
@@ -364,12 +398,13 @@ fun IllustView(navController: NavController, illust: Illust, onBack: () -> Unit 
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
                                         .padding(4.dp)
-                                        .clip(CircleShape)
+                                        .clip(RoundedCornerShape(12.dp))
                                         .background(Color.Black.copy(alpha = 0.6F))
-                                        .size(32.dp)
+                                        .height(24.dp)
+                                        .padding(8.dp, 0.dp)
                                 ) {
                                     Text(
-                                        (i + 1).toString(),
+                                        "${i + 1}/${illust.page_count}",
                                         color = Color.White,
                                         modifier = Modifier
                                             .align(Alignment.Center)
